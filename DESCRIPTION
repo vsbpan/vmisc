@@ -10,32 +10,52 @@ Maintainer: Vincent Pan <vsbpan@gmail.com>
 Description: Vincent's misc functions to be used across projects.
 License: GPL (>= 3)
 Depends:
-    tidyverse,
     R (>= 2.10)
 Imports:
-    doSNOW,
-    foreach,
-    Rcpp(>= 1.0.8),
-    RcppArmadillo,
-    mgcv,
-    devtools,
     pkgload,
-    insight,
     rlang, 
     cli, 
+    magrittr,
+    plyr,
+    purrr,
+    dplyr,
+    ggplot2,
+    tidyr,
+    tidyverse,
+    scales,
+    Rfast,
+    DescTools,
+    insight,
+    foreach,
+    crayon
+Suggests:
+    stringr,
+    forcats,
+    readr,
+    tibble,
+    glmmTMB,
+    performance,
+    sjPlot, 
     latex2exp,
     fitdistrplus, 
     brms,
     tidybayes,
-    insight,
-    rstantools
-    matrixStats, 
+    rstantools,
     DHARMa,
-    mvnfast
-Suggests:
-    glmmTMB,
-    performance,
-    sjPlot
-LinkingTo: 
-    Rcpp,
-    RcppArmadillo 
+    mvnfast, 
+    numDeriv,
+    kSamples,
+    philentropy, 
+    ggpmisc,
+    mgcv, 
+    doSNOW,
+    matrixStats,
+    pkgbuild,
+    devtools,
+    testthat,
+    rstudioapi,
+    glue, 
+    methods,
+    withr
+RoxygenNote: 7.2.3
+Encoding: UTF-8
