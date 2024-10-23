@@ -81,7 +81,13 @@ simulateResiduals.nls <- function(model, asFactor = FALSE, plot = FALSE, integer
   invisible(dharma.obj)
 }
 
-simulateResiduals.default <- function(model, ...){
-  DHARMa::simulateResiduals(model, ...)
+simulateResiduals.default <- function(model, plot = FALSE, asFactor = NULL, ...){
+  dharma.obj <- DHARMa::simulateResiduals(model, ...)
+
+  if(isTRUE(plot)){
+    plot(dharma.obj, asFactor = asFactor, ...)
+  }
+
+  invisible(dharma.obj)
 }
 

@@ -1,0 +1,195 @@
+rank_size_plot <- function(x, omit_zero = TRUE, add = FALSE, plot = TRUE, ...){
+  if(omit_zero){
+    x <- omit_zero(x)
+  }
+
+  stopifnot(all(x > 0))
+  #x <- x/sum(x)
+  r <- log(length(x) - rank(x))
+  v <- log(x)
+
+
+  if (plot) {
+    if (add) {
+      graphics::points(v ~ r, ...)
+    }
+    else {
+      plot(v ~ r, ylab = expression(ln(x)),
+           xlab = expression(ln(rank(x))), ...)
+    }
+  }
+  invisible(data.frame(log.rank = r, log.val  = v))
+}
+
+
+#' @title Survival Plot
+#' @description Generate a log-log survival plot of positive only sample. Can be useful for visualizing the tail of the distribution.
+#' @param x a vector of numeric values greater than 0
+#' @param add a logical value indicating whether to overlay points upon an existing plot
+#' @param plot a logical value indicating whether to plot the results. Set to \code{FALSE} to just getting the empirical cumulative distribution function data.frame.
+#' @param ... additional arguments passed to \code{points()} or \code{plot()}
+#' @return a data.frame of the empirical cumulative distribution function
+#' @examples
+#' x <- rlnorm(10000,1,1)
+#' survival_plot(x)
+#'
+#' x2 <- rlnorm(10000,1,1.1)
+#' survival_plot(x2, add = TRUE, col = "green", pch = 19)
+#'
+#' @references Aban, I. B., M. M. Meerschaert, and A. K. Panorska. 2006. Parameter Estimation for the Truncated Pareto Distribution. Journal of the American Statistical Association 101:270–277.
+survival_plot <- function(x, add = FALSE, plot = TRUE, ...){
+  stopifnot(all(x > 0))
+  x2 <- sort(x)
+  vals <- unique(x2)
+  rval <- cumsum(tabulate(match(x2,vals)))/length(x2)
+
+  if(plot){
+    if(add){
+      graphics::points(log(1-rval)~log(vals), ...)
+    } else {
+      plot(log(1-rval)~log(vals),
+           xlab = expression(ln(x)),
+           ylab = expression(ln(P(X>x))),
+           ...)
+    }
+
+  }
+  invisible(data.frame("ecdf" = rval, "x" = vals))
+}
+
+
+#' @title Get Biplot or Triplot
+#' @description Generate biplot or triplot using ggplot2.
+#' @param x an object that is supported by \code{vegan::scores()}
+#' @param choices a vector of length 2 defining the axes to plot
+#' @param scaling scaling argument passed to \code{vegan::scores()}
+#' @param display a vector of characters defining what to plot
+#' @param ellipse a character string passed to the \code{type} argument of \code{ggplot2::stat_ellipse()}. If \code{NA}, no ellipse is plotted.
+#' @param group a vector with the same length and order as the sites data used to fit the model that is used to color the site points.
+#' @param group2 a vector with the same length and order as the sites data used to fit the model that is used to determine the shape of the site points
+#' @param sites_alpha the transparency of the sites plotted as points
+#' @param sites_size the size pf the site points
+#' @param group_as_aes if \code{TRUE} (default is TRUE), \code{group} is passed as an aesthetics via \code{ggplot2::aes()}.
+#' @param species_color the color of the species labels
+#' @param species_alpha the transparency of the species plotted as text
+#' @return a ggplot object
+
+biplot <- function(x, choices = c(1,2), scaling = 2,
+                       display = c("sites", "species", "biplot", "centroids"),
+                       ellipse = NA,
+                       group = NULL,
+                       group2 = NULL,
+                       sites_alpha = 1,
+                       sites_size = 2,
+                       group_as_aes = TRUE,
+                       species_color = "violetred",
+                       species_alpha = 1){
+  display <- match.arg(display,several.ok = TRUE)
+  s <- vegan::scores(x,choices = choices,scaling = scaling)
+  name <- names(s)
+  if(is.null(name)){
+    name <- "sites"
+    s <- list(s)
+  }
+  s <- lapply(seq_along(name), function(i,s,name){
+    x <- as.data.frame(s[[i]])
+    x <- cbind(x, "a" = rownames(x))
+    names(x)[length(x)] <- name[i]
+    x
+  }, s = s, name = name)
+  names(s) <- name
+  dim1 <- names(s$sites)[1]
+  dim2 <- names(s$sites)[2]
+  s$dummy <- data.frame(1,2)
+  names(s$dummy) <- c(dim1, dim2)
+
+  egv <- vegan::eigenvals(x)
+  prec_var <- signif((egv / sum(egv) * 100)[choices], digits = 2)
+
+  g <- s$dummy %>%
+    ggplot2::ggplot(ggplot2::aes_string(paste0("x = ", dim1),paste0("y = ", dim2))) +
+    ggplot2::geom_vline(ggplot2::aes(xintercept=0),linetype="dashed",color="grey",size=1) +
+    ggplot2::geom_hline(ggplot2::aes(yintercept=0),linetype="dashed",color="grey",size=1) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = paste0(dim1, " (",prec_var[1],"%)"), y= paste0(dim2, " (",prec_var[2],"%)"))
+
+  if("sites" %in% display){
+    if(!is.null(group)){
+      if(!is.null(group2)){
+        s$sites <- cbind(s$sites, "group" = group, "group2" = group2)
+
+        if(group_as_aes){
+          g <- g + ggplot2::geom_point(data = s$sites,
+                                       ggplot2::aes(color = group, shape = group2),
+                                       alpha = sites_alpha,
+                                       size = sites_size)
+        } else {
+          g <- g + ggplot2::geom_point(data = s$sites,
+                                       ggplot2::aes(shape = group2),
+                                       color = group,
+                                       alpha = sites_alpha,
+                                       size = sites_size)
+        }
+
+      } else {
+        s$sites <- cbind(s$sites, "group" = group)
+
+        if(group_as_aes){
+          g <- g + ggplot2::geom_point(data = s$sites,
+                                       ggplot2::aes(color = group),
+                                       alpha = sites_alpha,
+                                       size = sites_size)
+        } else {
+          g <- g + ggplot2::geom_point(data = s$sites,
+                                       color = group,
+                                       alpha = sites_alpha,
+                                       size = sites_size)
+        }
+
+      }
+
+    } else {
+      g <- g + ggplot2::geom_point(data = s$sites,color = "deepskyblue", alpha = sites_alpha)
+    }
+  }
+
+  if(!is.na(ellipse)){
+    if(!is.null(group)){
+      s$sites <- cbind(s$sites, "z" = group)
+      g <- g + ggplot2::stat_ellipse(data = s$sites, ggplot2::aes(group = z), color = "navy",
+                                     linetype = 4, size = 1)
+    } else {
+      g <- g + ggplot2::stat_ellipse(data = s$sites, color = "navy",
+                                     linetype = 4, size = 1)
+    }
+  }
+
+  if("species" %in% display && !is.null(s$species)){
+    g <- g + ggplot2::geom_text(data = s$species,
+                                ggplot2::aes(label = species),
+                                color = species_color, alpha = species_alpha)
+    # maybe include ggrepel::geom_text_repel()
+  }
+
+  if("biplot" %in% display && !is.null(s$biplot)){
+    s$biplot$x <- 0
+    s$biplot$y <- 0
+    s$biplot$xend <- s$biplot[,dim1]
+    s$biplot$yend <-s$biplot[,dim2]
+    g <- g + ggplot2::geom_text(data = s$biplot,
+                                ggplot2::aes(label = biplot), color = "black") +
+      ggplot2::geom_segment(data = s$biplot, ggplot2::aes(x = x,
+                                                          y = y,
+                                                          xend = xend,
+                                                          yend = yend),
+                            arrow = ggplot2::arrow(length = ggplot2::unit(0.2, "cm")),
+                            color = "black",
+                            size = 1)
+  }
+
+  if("centroids" %in% display && !is.null(s$centroids)){
+    g <- g + ggplot2::geom_text(data = s$centroids,
+                                ggplot2::aes(label = centroids), color = "darkolivegreen")
+  }
+  return(g)
+}

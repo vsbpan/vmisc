@@ -82,3 +82,6 @@ marginal_effects <- function(model, terms, n = 300, ci = 0.95){
 
   return(new_data)
 }
+
+
+
