@@ -1,4 +1,4 @@
-rank_size_plot <- function(x, omit_zero = TRUE, add = FALSE, plot = TRUE, ...){
+plot_rank_size <- function(x, omit_zero = TRUE, add = FALSE, plot = TRUE, ...){
   if(omit_zero){
     x <- omit_zero(x)
   }
@@ -31,13 +31,13 @@ rank_size_plot <- function(x, omit_zero = TRUE, add = FALSE, plot = TRUE, ...){
 #' @return a data.frame of the empirical cumulative distribution function
 #' @examples
 #' x <- rlnorm(10000,1,1)
-#' survival_plot(x)
+#' plot_survival(x)
 #'
 #' x2 <- rlnorm(10000,1,1.1)
-#' survival_plot(x2, add = TRUE, col = "green", pch = 19)
+#' plot_survival(x2, add = TRUE, col = "green", pch = 19)
 #'
 #' @references Aban, I. B., M. M. Meerschaert, and A. K. Panorska. 2006. Parameter Estimation for the Truncated Pareto Distribution. Journal of the American Statistical Association 101:270–277.
-survival_plot <- function(x, add = FALSE, plot = TRUE, ...){
+plot_survival <- function(x, add = FALSE, plot = TRUE, ...){
   stopifnot(all(x > 0))
   x2 <- sort(x)
   vals <- unique(x2)
@@ -73,8 +73,7 @@ survival_plot <- function(x, add = FALSE, plot = TRUE, ...){
 #' @param species_color the color of the species labels
 #' @param species_alpha the transparency of the species plotted as text
 #' @return a ggplot object
-
-biplot <- function(x, choices = c(1,2), scaling = 2,
+ggbiplot <- function(x, choices = c(1,2), scaling = 2,
                        display = c("sites", "species", "biplot", "centroids"),
                        ellipse = NA,
                        group = NULL,
@@ -193,3 +192,65 @@ biplot <- function(x, choices = c(1,2), scaling = 2,
   }
   return(g)
 }
+
+
+plot_moments <- function(data_list, choice = c(2:4),
+                         plot = TRUE,
+                         center = FALSE,
+                         rr.digits = 3,
+                         coef.digits = 3,
+                         method = "MA"){
+  choice <- c(1, choice)
+
+  out <- lapply(
+    data_list,
+    function(x){
+      res <- vapply(choice, FUN = function(p){
+        moment(x, p)
+      }, FUN.VALUE = numeric(1))
+      names(res)<- c("x", paste0(choice[-1]))
+      res
+    }
+  ) %>%
+    bind_vec() %>%
+    tidyr::gather(
+      key = k, value = val, -x
+    ) %>%
+    dplyr::mutate(
+      k = as.numeric(k)
+    )
+
+  if(isTRUE(plot)){
+    out2 <- out
+
+
+    if(center){
+      y_lab <- tex("\\langle x^k \\rangle - \\langle x \\rangle^k")
+      out2 <- out2 %>%
+        dplyr::mutate(
+          val = val - x^k
+        )
+    } else {
+      y_lab <- tex("\\langle x^k \\rangle")
+    }
+
+    g <- out2 %>%
+      ggplot2::ggplot(ggplot2::aes(x = x,
+                                   y = val,
+                                   color = as.factor(k),
+                                   group = as.factor(k))) +
+      ggplot2::geom_point() +
+      geom_lineeq(rr.digits = rr.digits, method = method, coef.digits = coef.digits) +
+      scale_xy_log() +
+      ggplot2::labs(x = tex("\\langle x \\rangle"),
+           y = y_lab,
+           color = "k") +
+      ggplot2::theme_bw() +
+      ggplot2::scale_color_viridis_d()
+
+
+    suppressWarnings(print(g))
+  }
+  invisible(out)
+}
+

@@ -3,12 +3,16 @@ posterior_epred <- function(x, ...){
   UseMethod("posterior_epred")
 }
 
-simulateResiduals <- function(model, ...){
+simulateResiduals <- function(x, ...){
   UseMethod("simulateResiduals")
 }
 
 omit_zero <- function(x, ...){
   UseMethod("omit_zero")
+}
+
+loghist <- function(x, ...){
+  UseMethod("loghist")
 }
 
 registerS3method(genname = "omit_zero",
@@ -39,3 +43,14 @@ registerS3method(genname = "simulateResiduals",
 registerS3method(genname = "simulateResiduals",
                  class = "default",
                  method = simulateResiduals.default)
+
+registerS3method(genname = "loghist",
+                 class = "default",
+                 method = loghist.default)
+
+registerS3method(genname = "loghist",
+                 class = "list",
+                 method = loghist.list)
+
+
+

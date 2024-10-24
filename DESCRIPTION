@@ -21,13 +21,13 @@ Imports:
     dplyr,
     ggplot2,
     tidyr,
-    tidyverse,
     scales,
     Rfast,
     DescTools,
     insight,
     foreach,
-    crayon
+    crayon,
+    tidyverse
 Suggests:
     stringr,
     forcats,

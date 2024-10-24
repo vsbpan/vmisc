@@ -46,20 +46,6 @@ where \eqn{a} is the number of elements of the vector \eqn{x} that satisfies \eq
 \note{
 Part of the code for this function is adapted from Achim Zeileis's \code{ineq::Lasym()} version 0.2-13.
 }
-\examples{
-x <- rbeta(1000,1,0.2)
-hist(x)
-plot(lorenz_curve(x))
-abline(a=1,b=-1) # Line of symmetry
-lac(x) # S = 0.48
-
-x2 <- rallo(1000,a=3)
-hist(x2)
-plot(lorenz_curve(x2))
-abline(a=1,b=-1) # Line of symmetry
-lac(x2) # S = 1.24
-
-}
 \references{
 Damgaard, C., and J. Weiner. 2000. Describing Inequality in Plant Size or Fecundity. Ecology 81:1139–1142.
 }

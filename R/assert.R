@@ -30,8 +30,6 @@ overlaps_zero <- function(..., return_star = FALSE){
   return(o)
 }
 
-
-
 # Check if brmsfit is multivariate
 is.multi_response <- function(model){
   insight::get_family(model)$family %in% c("multinomial", "categorical")
@@ -113,3 +111,12 @@ assert_dir <- function(x){
 }
 
 
+assert_package <- function(x){
+  if(!requireNamespace(x, quietly = TRUE)){
+    stop(sprintf("This function requires the '%s' package, but loading failed.", x))
+  }
+}
+
+is.distr <- function(x){
+  inherits(x, "distr")
+}

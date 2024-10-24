@@ -4,12 +4,16 @@
 \alias{seq_interval}
 \title{Evenly spaced sequences between the range of a vector}
 \usage{
-seq_interval(x, length.out = 300)
+seq_interval(x, length.out = 300, by = NULL, na.rm = FALSE)
 }
 \arguments{
 \item{x}{the vector}
 
 \item{length.out}{the length of output vector}
+
+\item{by}{number: increment of the sequence.}
+
+\item{na.rm}{if \code{TRUE}, remove NA.}
 }
 \value{
 a numeric vector

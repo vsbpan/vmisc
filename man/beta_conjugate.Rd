@@ -17,6 +17,8 @@ beta_conjugate2(a, interval = 0.95, prior = rep(1, length(a)))
 \item{interval}{A numeric value indicating the intervals for upper and lower bounds (default to 0.95).}
 
 \item{prior}{A numeric vector of the alpha and beta value of the conjugate prior. Default is the Bayes-Laplace prior (Tuyl et al. 2008) \eqn{\alpha = 1, \beta = 1}. Other popular choices include 'neutral' prior (Kerman 2011) \eqn{\alpha = 1/3, \beta = 1/3}, and the Jeffreys prior \eqn{\alpha = 0.5, \beta = 0.5}.}
+
+\item{a}{A vector of the number of a particular class.}
 }
 \value{
 a numeric vector

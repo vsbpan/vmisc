@@ -1,15 +1,15 @@
-simulateResiduals.brmsfit <- function(model, integer = NULL, plot = FALSE, asFactor = FALSE, ...) {
-  stopifnot(brms::is.brmsfit(model))
+simulateResiduals.brmsfit <- function(x, integer = NULL, plot = FALSE, asFactor = FALSE, ...) {
+  stopifnot(brms::is.brmsfit(x))
   if(is.null(integer)){
-    integer <- switch(insight::get_family(model)$type,
+    integer <- switch(insight::get_family(x)$type,
                       "real" = FALSE,
                       "int" = TRUE)
   }
 
-  if(insight::get_family(model)$family %in% c("multinomial")){
-    resp <- brms::posterior_predict(model, ndraws = 1000)
-    y <- brms::get_y(model)
-    pred <- colMeans(brms::posterior_epred(model, ndraws = 1000, re.form = NA))
+  if(insight::get_family(x)$family %in% c("multinomial")){
+    resp <- brms::posterior_predict(x, ndraws = 1000)
+    y <- brms::get_y(x)
+    pred <- colMeans(brms::posterior_epred(x, ndraws = 1000, re.form = NA))
 
     out <- list()
     for (i in seq_len(ncol(y))){
@@ -27,13 +27,13 @@ simulateResiduals.brmsfit <- function(model, integer = NULL, plot = FALSE, asFac
     return(invisible(out))
   }
 
-  if(insight::get_family(model)$family %in% c("categorical")){
-    levels <- unique(brms::get_y(model))
-    y <- apply(levels,1,function(x){as.numeric(brms::get_y(model) == x)})
-    resp <- brms::posterior_predict(model, ndraws = 1000)
+  if(insight::get_family(x)$family %in% c("categorical")){
+    levels <- unique(brms::get_y(x))
+    y <- apply(levels,1,function(x){as.numeric(brms::get_y(x) == x)})
+    resp <- brms::posterior_predict(x, ndraws = 1000)
     resp <- array(do.call("c", lapply(levels,function(x){as.numeric(resp == x)})),
                   dim = c(1000, nrow(y), length(levels)))
-    pred <- colMeans(brms::posterior_epred(model, ndraws = 1000, re.form = NA))
+    pred <- colMeans(brms::posterior_epred(x, ndraws = 1000, re.form = NA))
 
     out <- list()
     for (i in seq_len(ncol(y))){
@@ -51,9 +51,9 @@ simulateResiduals.brmsfit <- function(model, integer = NULL, plot = FALSE, asFac
   }
 
   dharma.obj <- DHARMa::createDHARMa(
-    simulatedResponse = t(brms::posterior_predict(model, ndraws = 1000)),
-    observedResponse = brms::get_y(model),
-    fittedPredictedResponse = colMeans(brms::posterior_epred(model, ndraws = 1000, re.form = NA)),
+    simulatedResponse = t(brms::posterior_predict(x, ndraws = 1000)),
+    observedResponse = brms::get_y(x),
+    fittedPredictedResponse = colMeans(brms::posterior_epred(x, ndraws = 1000, re.form = NA)),
     integerResponse = integer)
 
   if(isTRUE(plot)) {
@@ -64,12 +64,12 @@ simulateResiduals.brmsfit <- function(model, integer = NULL, plot = FALSE, asFac
 }
 
 
-simulateResiduals.nls <- function(model, asFactor = FALSE, plot = FALSE, integer = FALSE, ...) {
+simulateResiduals.nls <- function(x, asFactor = FALSE, plot = FALSE, integer = FALSE, ...) {
 
-  pred <- predict(model)
+  pred <- predict(x)
 
   dharma.obj <- DHARMa::createDHARMa(
-    simulatedResponse = replicate(500, stats::rnorm(length(pred), pred, stats::sigma(m))),
+    simulatedResponse = replicate(500, stats::rnorm(length(pred), pred, stats::sigma(x))),
     observedResponse = insight::get_response(x),
     fittedPredictedResponse = pred,
     integerResponse = integer)
@@ -81,8 +81,8 @@ simulateResiduals.nls <- function(model, asFactor = FALSE, plot = FALSE, integer
   invisible(dharma.obj)
 }
 
-simulateResiduals.default <- function(model, plot = FALSE, asFactor = NULL, ...){
-  dharma.obj <- DHARMa::simulateResiduals(model, ...)
+simulateResiduals.default <- function(x, plot = FALSE, asFactor = NULL, ...){
+  dharma.obj <- DHARMa::simulateResiduals(x, ...)
 
   if(isTRUE(plot)){
     plot(dharma.obj, asFactor = asFactor, ...)

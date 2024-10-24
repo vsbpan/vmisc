@@ -5,6 +5,8 @@
 \title{Bind a list of vector into data.frame}
 \usage{
 bind_vec(x, margin = 1L, keep_row_names = TRUE, row_names_as_col = FALSE)
+
+bind_vec(x, margin = 1L, keep_row_names = TRUE, row_names_as_col = FALSE)
 }
 \arguments{
 \item{x}{a list of vectors}
@@ -17,7 +19,11 @@ bind_vec(x, margin = 1L, keep_row_names = TRUE, row_names_as_col = FALSE)
 }
 \value{
 a data.frame
+
+a data.frame
 }
 \description{
+Bind a list of vector into a data.frame and keep track of list names and vector names.
+
 Bind a list of vector into a data.frame and keep track of list names and vector names.
 }

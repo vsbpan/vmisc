@@ -29,19 +29,6 @@ fake_pkg <- function(fake_pkg_root_path = getwd()){
   pkg[dirname(path.package(pkg)) %in% fake_pkg_root_path]
 }
 
-.onAttach <- function(...){
-  packageStartupMessage(
-    cli::cat_line(
-      cli::rule(crayon::bold(paste0("Attached vmisc ", package_version2("vmisc"))))
-    )
-  )
-  cat("\n")
-  .tidyverse_attach()
-  if (!"package:conflicted" %in% search()) {
-    packageStartupMessage(.vmisc_conflicts())
-  }
-
-}
 
 package_version2 <- function(x){
   tryCatch(utils::packageVersion(x),
@@ -99,7 +86,7 @@ package_version2 <- function(x){
   bullets <- paste0(crayon::red(cli::symbol$cross), " ", funs,
                     " masks ", other_calls, collapse = "\n")
   res <- paste0(header, "\n", bullets)
-  cli::cat_line(res)
+  text_col(res)
 }
 
 detach.vmisc <- function(x){
@@ -116,9 +103,22 @@ detach.vmisc <- function(x){
 .reinstall.vmisc <- function(package_path = "C:/R_Projects/Package_Building/vmisc/vmisc_0.1.0.tar.gz", ...){
   load.vmisc <- "vmisc" %in% (.packages())
   detach.vmisc()
-  install.packages(package_path, repos = NULL, type = "source")
-  .rs.restartR()
+  utils::install.packages(package_path, repos = NULL, type = "source")
+  rstudioapi::restartSession()
   if (load.vmisc) {
     library(vmisc)
   }
 }
+
+.onAttach <- function(...){
+  packageStartupMessage(
+    text_col(cli::rule(crayon::bold(paste0("Attached vmisc ", package_version2("vmisc")))))
+  )
+  packageStartupMessage("")
+  .tidyverse_attach()
+  if (!"package:conflicted" %in% search()) {
+    packageStartupMessage(.vmisc_conflicts())
+  }
+}
+
+
