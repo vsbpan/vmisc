@@ -10,3 +10,11 @@ text_col <- function(x){
     crayon::white(x)
   else crayon::black(x)
 }
+
+warnifnot <- function(x){
+  if(!isTRUE(x)){
+    test <- deparse1(substitute(x))
+    test <- crayon::blue(test)
+    cli::cli_alert_warning("{.code {test}} is not TRUE")
+  }
+}

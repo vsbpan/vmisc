@@ -120,3 +120,9 @@ assert_package <- function(x){
 is.distr <- function(x){
   inherits(x, "distr")
 }
+
+has_function <- function(x){
+  stopifnot(length(x) == 1)
+  is.function(get0(x))
+}
+
