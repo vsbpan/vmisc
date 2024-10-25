@@ -185,7 +185,17 @@ posterior_epred.nls <- function(x,
                                 scale = c("response", "link"),
                                 ...){
 
-  vcov_mat <- vcov(x)
+  vcov_mat <- tryCatch(vcov(x),
+                       error = function(e){
+    message(e$message)
+    return(NULL)
+  })
+
+  if(is.null(vcov_mat) || is.error(vcov_mat)){
+    cli::cli_alert_danger("Returning NAs. Cannot retreive variance covariance matrix.")
+    return(rep(NA_real_, ndraws))
+  }
+
   coefs <- mvnfast::rmvn(ndraws, mu = stats::coef(x),
                          sigma = vcov_mat, kpnames = TRUE)
 

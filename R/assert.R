@@ -121,6 +121,10 @@ is.distr <- function(x){
   inherits(x, "distr")
 }
 
+is.error <- function(x){
+  inherits(x, "error") | inherits(x, "try-error")
+}
+
 has_function <- function(x){
   stopifnot(length(x) == 1)
   is.function(get0(x))
