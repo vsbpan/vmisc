@@ -58,8 +58,8 @@ marginal_effects <- function(model, terms, n = 300, ci = 0.95){
     new_data <- cbind(new_data,
                       "yhat_link" = pred$fit,
                       "se" = pred$se.fit)
-    new_data$lower_link <- new_data$yhat_link + qnorm((1 - ci)/2) * new_data$se
-    new_data$upper_link <- new_data$yhat_link + qnorm((1 - ci)/2, lower.tail = FALSE) * new_data$se
+    new_data$lower_link <- new_data$yhat_link + stats::qnorm((1 - ci)/2) * new_data$se
+    new_data$upper_link <- new_data$yhat_link + stats::qnorm((1 - ci)/2, lower.tail = FALSE) * new_data$se
 
     new_data <- new_data %>%
       dplyr::mutate(se = se^2) %>%

@@ -129,9 +129,12 @@ posterior_epred.gam <- function(object, newdata = NULL,
   linpred <- tcrossprod(design_matrix, coefs)
 
   if(match.arg(scale) == "response"){
-    preds <- as.data.frame(stats::family(object)$linkinv(linpred))
+    preds <- as.matrix(stats::family(object)$linkinv(linpred))
+  } else {
+    preds <- linpred
   }
-  names(preds) <- paste0("draw_",seq_len(ndraws))
+  preds <- t(preds)
+  rownames(preds) <- paste0("draw_", seq_len(nrow(preds)))
   return(preds)
 }
 
@@ -163,6 +166,8 @@ posterior_epred.brmsfit <- function (object, newdata = NULL, re_formula = NULL, 
     res <- rstantools::posterior_epred(prep, dpar = dpar, nlpar = nlpar, sort = sort,
                                        scale = scale, summary = FALSE)
   }
+
+  rownames(res) <- paste0("draw_", seq_len(nrow(res)))
 
   return(res)
 }

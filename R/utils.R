@@ -209,4 +209,10 @@ bind_vec <- function(x,margin = 1L, keep_row_names = TRUE, row_names_as_col = FA
 }
 
 
+# Set rowname as the first column
+keep_rowname <- function(x, rn = "rn"){
+  res <- cbind("rn" = rownames(x), x)
+  names(res)[1] <- rn
+  res
+}
 
