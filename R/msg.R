@@ -18,3 +18,30 @@ warnifnot <- function(x){
     cli::cli_alert_warning("{.code {test}} is not TRUE")
   }
 }
+
+
+suppressExtraMessages <- function(expr){
+  .f <- function(){
+    expr
+  }
+  .f <- purrr::as_mapper(.f)
+  fewer <- function(z) {
+    z <- trimws(z)
+    counts <- table(z)
+    counts <- counts[match(names(counts), z)]
+    paste0(names(counts), ifelse(counts > 1, cli::col_blue(sprintf(" (%d times)", counts)), ""))
+  }
+  out <- function(...) {
+    res <- capture_output(.f(...))
+    msgs <- fewer(res$messages)
+    warns <- fewer(res$warnings)
+    res <- res$result
+    for (m in msgs) message(m)
+    for (w in warns) warning(w, call. = FALSE)
+    return(res)
+  }
+  return(out())
+}
+
+capture_output <- utils::getFromNamespace("capture_output", "purrr")
+

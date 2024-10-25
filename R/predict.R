@@ -193,22 +193,23 @@ posterior_epred.nls <- function(x,
 
   if(is.null(vcov_mat) || is.error(vcov_mat)){
     cli::cli_alert_danger("Returning NAs. Cannot retreive variance covariance matrix.")
-    return(rep(NA_real_, ndraws))
+
+    preds <- matrix(rep(NA_real_, prod(ndraws, nrow(newdata))), nrow = ndraws, ncol = nrow(newdata))
+  } else {
+    coefs <- mvnfast::rmvn(ndraws, mu = stats::coef(x),
+                           sigma = vcov_mat, kpnames = TRUE)
+
+    stopifnot(is.data.frame(newdata))
+    newdata <- as.list(newdata)
+
+    preds <- lapply(
+      apply(coefs, 1, function(x) x, simplify = FALSE),
+      function(coef_l){
+        do.call(as.function(x$m$formula()), c(coef_l, newdata))
+      }
+    ) %>%
+      do.call("rbind", .)
   }
-
-  coefs <- mvnfast::rmvn(ndraws, mu = stats::coef(x),
-                         sigma = vcov_mat, kpnames = TRUE)
-
-  stopifnot(is.data.frame(newdata))
-  newdata <- as.list(newdata)
-
-  preds <- lapply(
-    apply(coefs, 1, function(x) x, simplify = FALSE),
-    function(coef_l){
-      do.call(as.function(x$m$formula()), c(coef_l, newdata))
-    }
-  ) %>%
-    do.call("rbind", .)
 
   rownames(preds) <- paste0("draw_",seq_len(ndraws))
   return(preds)

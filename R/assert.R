@@ -130,3 +130,8 @@ has_function <- function(x){
   is.function(get0(x))
 }
 
+
+
+
+
+
