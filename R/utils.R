@@ -216,3 +216,10 @@ keep_rowname <- function(x, rn = "rn"){
   res
 }
 
+
+# Convert formula as function
+as.function.formula <- function(x) {
+  cmd <- utils::tail(as.character(x),1)
+  exp <- parse(text = cmd)
+  function(...) eval(exp, list(...))
+}

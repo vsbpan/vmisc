@@ -114,22 +114,23 @@ prepare_newdata <- function(model, terms = NULL, n = 300){
 
 
 # Posterior prediction like method for `gam` objects.
-posterior_epred.gam <- function(object, newdata = NULL,
+posterior_epred.gam <- function(x, newdata = NULL,
                                 ndraws = 100,
                                 unconditional = TRUE,
                                 re_formula = NA,
                                 scale = c("response", "link"), ...){
-  design_matrix <- stats::predict(object,
+  design_matrix <- stats::predict(x,
                            newdata = newdata,
                            type = "lpmatrix",
                            unconditional = unconditional)
-  vcov_mat <- stats::vcov(object, unconditional = unconditional)
-  coefs <- mvnfast::rmvn(ndraws, mu = stats::coef(object),
+  vcov_mat <- stats::vcov(x, unconditional = unconditional)
+  coefs <- mvnfast::rmvn(ndraws, mu = stats::coef(x),
                          sigma = vcov_mat, kpnames = TRUE)
   linpred <- tcrossprod(design_matrix, coefs)
 
   if(match.arg(scale) == "response"){
-    preds <- as.matrix(stats::family(object)$linkinv(linpred))
+    inv_link <- insight::link_inverse(x)
+    preds <- as.matrix(inv_link(linpred))
   } else {
     preds <- linpred
   }
@@ -140,28 +141,31 @@ posterior_epred.gam <- function(object, newdata = NULL,
 
 
 # Poterior prediction method for `brmsfit`.
-posterior_epred.brmsfit <- function (object, newdata = NULL, re_formula = NULL, re.form = NULL,
-                                     resp = NULL, dpar = NULL, nlpar = NULL, ndraws = NULL, draw_ids = NULL,
+posterior_epred.brmsfit <- function (x, newdata = NULL,
+                                     re_formula = NULL, re.form = NULL,
+                                     resp = NULL, dpar = NULL, nlpar = NULL,
+                                     ndraws = NULL, draw_ids = NULL,
                                      sort = FALSE, scale = c("response", "link"), ...) {
   cl <- match.call()
   if ("re.form" %in% names(cl) && !missing(re.form)) {
     re_formula <- re.form
   }
-  object <- brms::restructure(object)
-  prep <- brms::prepare_predictions(object, newdata = newdata, re_formula = re_formula,
-                                    resp = resp, ndraws = ndraws, draw_ids = draw_ids, check_response = FALSE,
+  x <- brms::restructure(x)
+  prep <- brms::prepare_predictions(x, newdata = newdata, re_formula = re_formula,
+                                    resp = resp, ndraws = ndraws, draw_ids = draw_ids,
+                                    check_response = FALSE,
                                     ...)
 
 
 
   scale <- match.arg(scale)
-  if(scale == "link" && is.multi_response(object)){
+  if(scale == "link" && is.multi_response(x)){
     # Set the number of trials to 1 such that the result is in proportions.
     prep$data$trials <- rep(1, length(prep$data$trials))
     res <- rstantools::posterior_epred(prep, dpar = dpar, nlpar = nlpar, sort = sort,
                                        scale = "response", summary = FALSE)
     # Back transform to link scale
-    res <- insight::link_function(object)(res)
+    res <- insight::link_function(x)(res)
   } else {
     res <- rstantools::posterior_epred(prep, dpar = dpar, nlpar = nlpar, sort = sort,
                                        scale = scale, summary = FALSE)
@@ -171,3 +175,32 @@ posterior_epred.brmsfit <- function (object, newdata = NULL, re_formula = NULL, 
 
   return(res)
 }
+
+
+# Generate predicted draws
+posterior_epred.nls <- function(x,
+                                newdata = NULL,
+                                ndraws = 100,
+                                re_formula = NA,
+                                scale = c("response", "link"),
+                                ...){
+
+  vcov_mat <- vcov(x)
+  coefs <- mvnfast::rmvn(ndraws, mu = stats::coef(x),
+                         sigma = vcov_mat, kpnames = TRUE)
+
+  stopifnot(is.data.frame(newdata))
+  newdata <- as.list(newdata)
+
+  preds <- lapply(
+    apply(coefs, 1, function(x) x, simplify = FALSE),
+    function(coef_l){
+      do.call(as.function(x$m$formula()), c(coef_l, newdata))
+    }
+  ) %>%
+    do.call("rbind", .)
+
+  rownames(preds) <- paste0("draw_",seq_len(ndraws))
+  return(preds)
+}
+
