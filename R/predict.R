@@ -204,3 +204,10 @@ posterior_epred.nls <- function(x,
   return(preds)
 }
 
+
+vcov.nls <- function(object){
+  res <- (chol2inv(object$m$Rmat()) * stats::var(as.vector(object$m$resid())))
+  nms <- names(stats::coef(object))
+  dimnames(res) <- list(nms, nms)
+  return(res)
+}

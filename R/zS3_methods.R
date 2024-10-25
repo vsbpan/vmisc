@@ -43,6 +43,10 @@ loghist <- function(x,
   UseMethod("loghist")
 }
 
+registerS3method(genname = "vcov",
+                 class = "nls",
+                 method = vcov.nls)
+
 registerS3method(genname = "as.function",
                  class = "formula",
                  method = as.function.formula)
