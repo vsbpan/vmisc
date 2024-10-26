@@ -217,7 +217,18 @@ posterior_epred.nls <- function(x,
 
 
 vcov.nls <- function(object){
-  res <- (chol2inv(object$m$Rmat()) * stats::var(as.vector(object$m$resid())))
+  res <- tryCatch({
+    (chol2inv(object$m$Rmat()) * stats::var(as.vector(object$m$resid())))
+  }, error = function(e){
+    message(e$message)
+    return(NULL)
+  })
+  if(is.error(res) || is.null(res)){
+    cli::cli_alert_danger("Returning NAs. Cannot retreive variance covariance matrix.")
+    n <- length(stats::coef(object))
+    res <- matrix(rep(NA_real_, n^2), nrow = n, ncol = n)
+
+  }
   nms <- names(stats::coef(object))
   dimnames(res) <- list(nms, nms)
   return(res)
