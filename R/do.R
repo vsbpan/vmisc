@@ -57,13 +57,22 @@ pb_par_lapply <- function(x, FUN,
       export <- ls(globalenv())
     }
 
+    cur_env <- environment()
+
+    cli::cli_progress_bar(format = "Processing item {cli::pb_current} of {cli::pb_total} | {cli::pb_bar} {cli::pb_percent} | ETA: {cli::pb_eta}",
+                          total = length(x), .envir = cur_env)
+
     out <- tryCatch(foreach::foreach(
-      i = cli::cli_progress_along(x,
-                                  format = "Processing item {cli::pb_current} of {cli::pb_total} | {cli::pb_bar} {cli::pb_percent} | ETA: {cli::pb_eta}"), # Passing large list directly as elements to avoid memory overflow
+      i = x, # Passing large list directly as elements to avoid memory overflow
       .export = export,
       .combine = c,
       .verbose = FALSE,
       .inorder = inorder,
+      .options.snow = list(
+        progress = function(n){
+          cli::cli_progress_update(1, .envir = cur_env)
+        }
+      ),
       .final = function(x){
         if(!has_clust){
           message("\nClosing parallel workers. . .")

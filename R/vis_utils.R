@@ -1,8 +1,8 @@
-geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3){
+geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels = c("eq", "R2")){
   list(
     ggpmisc::stat_ma_line(method = method),
     ggpmisc::stat_ma_eq(eq.with.lhs = "italic(hat(y))~`=`~",
-                        ggpmisc::use_label(c("eq", "R2")),
+                        ggpmisc::use_label(labels),
                         rr.digits = rr.digits,
                         coef.digits = coef.digits,
                         coef.keep.zeros = TRUE,

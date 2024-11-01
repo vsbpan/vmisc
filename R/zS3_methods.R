@@ -16,10 +16,6 @@ omit_zero <- function(x, ...){
   UseMethod("omit_zero")
 }
 
-vcov <- function(object, ...){
-  UseMethod("vcov")
-}
-
 loghist <- function(x,
                     nclass,
                     by = NULL,

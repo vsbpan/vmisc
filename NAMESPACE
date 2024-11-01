@@ -2,7 +2,7 @@ exportPattern("^[[:alpha:]]+")
 
 
 importFrom("stats", "as.dist", "logLik", "median", "na.omit", "pchisq",
-                "predict", "qlogis", "qnorm", "quantile", "sd", "var")
+                "predict", "qlogis", "qnorm", "quantile", "sd", "var", "vcov")
 importFrom("utils", "lsf.str")
 importFrom("foreach", "%dopar%")
 importFrom("magrittr", "%>%")
