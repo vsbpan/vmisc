@@ -19,7 +19,7 @@ reload <- function(dev = FALSE, package = fake_pkg()){
 
 # Recompile C++ code
 recompile <- function(package = fake_pkg()){
-  pkgload::load_all(path.package(package))
+  pkgload::load_all(pkgload::pkg_path(package))
 }
 
 
