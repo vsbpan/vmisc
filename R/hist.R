@@ -1,3 +1,4 @@
+#' @export
 loghist.default <- function(x,
                     nclass = function(x){ceiling(log2(length(x)) + 1)},
                     by = NULL,
@@ -107,7 +108,7 @@ loghist.default <- function(x,
   return(g)
 }
 
-
+#' @export
 loghist.list <- function(x,
                          nclass = 50,
                          by = NULL,

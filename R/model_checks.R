@@ -1,3 +1,4 @@
+#' @export
 simulateResiduals.brmsfit <- function(x, integer = NULL, plot = FALSE, asFactor = FALSE, ...) {
   stopifnot(brms::is.brmsfit(x))
   if(is.null(integer)){
@@ -63,7 +64,7 @@ simulateResiduals.brmsfit <- function(x, integer = NULL, plot = FALSE, asFactor 
     invisible(dharma.obj)
 }
 
-
+#' @export
 simulateResiduals.nls <- function(x, asFactor = FALSE, plot = FALSE, integer = FALSE, ...) {
 
   pred <- predict(x)
@@ -81,6 +82,7 @@ simulateResiduals.nls <- function(x, asFactor = FALSE, plot = FALSE, integer = F
   invisible(dharma.obj)
 }
 
+#' @export
 simulateResiduals.default <- function(x, plot = FALSE, asFactor = NULL, ...){
   dharma.obj <- DHARMa::simulateResiduals(x, ...)
 

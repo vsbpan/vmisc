@@ -114,6 +114,7 @@ prepare_newdata <- function(model, terms = NULL, n = 300){
 
 
 # Posterior prediction like method for `gam` objects.
+#' @export
 posterior_epred.gam <- function(x, newdata = NULL,
                                 ndraws = 100,
                                 unconditional = TRUE,
@@ -141,6 +142,7 @@ posterior_epred.gam <- function(x, newdata = NULL,
 
 
 # Poterior prediction method for `brmsfit`.
+#' @export
 posterior_epred.brmsfit <- function (x, newdata = NULL,
                                      re_formula = NULL, re.form = NULL,
                                      resp = NULL, dpar = NULL, nlpar = NULL,
@@ -178,6 +180,7 @@ posterior_epred.brmsfit <- function (x, newdata = NULL,
 
 
 # Generate predicted draws
+#' @export
 posterior_epred.nls <- function(x,
                                 newdata = NULL,
                                 ndraws = 100,
@@ -215,7 +218,7 @@ posterior_epred.nls <- function(x,
   return(preds)
 }
 
-
+#' @export
 vcov.nls <- function(object){
   res <- tryCatch({
     (chol2inv(object$m$Rmat()) * stats::var(as.vector(object$m$resid())))
