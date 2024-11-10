@@ -117,7 +117,7 @@ prepare_newdata <- function(model, terms = NULL, n = 300){
 #' @export
 posterior_epred.gam <- function(x, newdata = NULL,
                                 ndraws = 100,
-                                unconditional = TRUE,
+                                unconditional = FALSE,
                                 re_formula = NA,
                                 scale = c("response", "link"), ...){
   design_matrix <- stats::predict(x,
@@ -127,13 +127,11 @@ posterior_epred.gam <- function(x, newdata = NULL,
   vcov_mat <- stats::vcov(x, unconditional = unconditional)
   coefs <- mvnfast::rmvn(ndraws, mu = stats::coef(x),
                          sigma = vcov_mat, kpnames = TRUE)
-  linpred <- tcrossprod(design_matrix, coefs)
+  preds <- tcrossprod(design_matrix, coefs)
 
   if(match.arg(scale) == "response"){
     inv_link <- insight::link_inverse(x)
-    preds <- as.matrix(inv_link(linpred))
-  } else {
-    preds <- linpred
+    preds <- as.matrix(inv_link(preds))
   }
   preds <- t(preds)
   rownames(preds) <- paste0("draw_", seq_len(nrow(preds)))
@@ -204,13 +202,11 @@ posterior_epred.nls <- function(x,
 
     stopifnot(is.data.frame(newdata))
     newdata <- as.list(newdata)
-
-    preds <- lapply(
-      apply(coefs, 1, function(x) x, simplify = FALSE),
-      function(coef_l){
-        do.call(as.function(x$m$formula()), c(coef_l, newdata))
-      }
-    ) %>%
+    FUN <- as.function(x$m$formula())
+    preds <- lapply(seq_len(ndraws),
+                    function(i) {
+                      do.call(FUN, c(coefs[i,],newdata))
+                    }) %>%
       do.call("rbind", .)
   }
 

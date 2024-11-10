@@ -220,7 +220,7 @@ keep_rowname <- function(x, rn = "rn"){
 # Convert formula as function
 #' @export
 as.function.formula <- function(x) {
-  cmd <- utils::tail(as.character(x),1)
+  cmd <- as.character(x)[3]
   exp <- parse(text = cmd)
   function(...) eval(exp, list(...))
 }
