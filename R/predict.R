@@ -156,8 +156,6 @@ posterior_epred.brmsfit <- function (x, newdata = NULL,
                                     check_response = FALSE,
                                     ...)
 
-
-
   scale <- match.arg(scale)
   if(scale == "link" && is.multi_response(x)){
     # Set the number of trials to 1 such that the result is in proportions.
