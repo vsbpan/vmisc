@@ -15,7 +15,8 @@ warnifnot <- function(x){
   if(!isTRUE(x)){
     test <- deparse1(substitute(x))
     test <- crayon::blue(test)
-    cli::cli_alert_warning("{.code {test}} is not TRUE")
+    value <- crayon::yellow(TRUE)
+    cli::cli_alert_warning("{.code {test}} is not {value}")
   }
 }
 
