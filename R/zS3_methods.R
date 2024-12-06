@@ -1,4 +1,21 @@
 # Generic methods
+#' @title Generate posterior draws from model
+#' @description
+#' Generate posterior draws from model.
+#' @param x the model object
+#' @param newdata a data.frame of newdata for the model to predict from
+#' @param ndraws a positive integer indicating the number of draws from the model
+#' @param re_formula if NA, ignore random effects.
+#' @param scale return the predictions on the link scale ("link") or response scale ("response"). Default is "response".
+#' @param ... additional arguments
+#' @param unconditional if TRUE then the smoothing parameter uncertainty corrected covariance matrix is used, when available, otherwise the covariance matrix conditional on the estimated smoothing parameters is used.
+#' @param resp passed to `brms::prepare_predictions()`
+#' @param dpar passed to `rstantools::posterior_epred()`
+#' @param nlpar passed to `rstantools::posterior_epred()`
+#' @param draw_ids passed to `brms::prepare_predictions()`
+#' @param sort passed to `rstantools::posterior_epred()`
+#' @return a matrix of ndraws X nobs
+#' @rdname posterior_epred
 posterior_epred <- function(x,
                             newdata = NULL,
                             ndraws,
@@ -8,10 +25,23 @@ posterior_epred <- function(x,
   UseMethod("posterior_epred")
 }
 
+#' @title Create simulated residuals
+#' @description see `?DHARMa::simulateResiduals()`.
+#' @param x the model object
+#' @param plot if TRUE, plot the simulated residuals
+#' @param asFactor if TRUE, bin the residuals.
+#' @param integer is the response an integer?
+#' @param ... additional arguments
+#' @rdname simulateResiduals
 simulateResiduals <- function(x, plot = FALSE, asFactor, ...){
   UseMethod("simulateResiduals")
 }
 
+#' @title Drop the element if it is completely zero
+#' @description Drop the element if it is completely zero
+#' @param x a vector
+#' @param ... additional arguments
+#' @rdname omit_zero
 omit_zero <- function(x, ...){
   UseMethod("omit_zero")
 }

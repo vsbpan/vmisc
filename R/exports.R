@@ -1,7 +1,12 @@
-# Export rbind.fill function from plyr
+#' @rdname exported_other
+#' @export
 rbind.fill <- function(...){
   plyr::rbind.fill(...)
 }
+
+#' @rdname exported_other
+#' @export
+capture_output <- utils::getFromNamespace("capture_output", "purrr")
 
 
 #' @title Other handy exported functions
@@ -9,6 +14,7 @@ rbind.fill <- function(...){
 #' Essentially a wrapper for certain useful functions exported form other packages.
 #' @param ... additional arguments passed to the exported function
 #' @param test.na,unit,est.prob,x See \code{philentropy::KL()}.
+#' @param code see \code{purrr::capture_output}
 #' @return see documentation of exported functions.
 #' @rdname exported_other
 #' @export

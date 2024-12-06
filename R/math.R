@@ -1,4 +1,9 @@
-# Delta method for VCV matrix
+#' @title Multivariate delta method
+#' @description Approximate the variance covariance matrix of transformed random variables via first order Taylor approximation
+#' @param x the expectation of x
+#' @param vcv the variance covariance matrix
+#' @param trans a list of functions of the transformation
+#' @return a variance covariance matrix
 FOSM2 <- function(x, vcv, trans){
   stopifnot(is.list(trans))
   stopifnot(length(x) == length(trans))
@@ -35,6 +40,12 @@ FOSM2 <- function(x, vcv, trans){
 }
 
 
+#' @title Compute raw moment
+#' @description compute the pth raw moment
+#' @param x a vector of samples
+#' @param p an atomic numeric vector of the pth moment
+#' @return an atomic vector
 moment <- function(x, p){
+  assert_atomic_type(p, "numeric")
   mean(x^p)
 }

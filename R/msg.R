@@ -1,3 +1,8 @@
+#' @title Change the text color depending on rstudio theme dark mode or light mode
+#' @description
+#' stolen from `tidyverse`
+#' @param x a character string
+#' @return a character string
 text_col <- function(x){
   if (!rstudioapi::isAvailable()) {
     return(x)
@@ -11,6 +16,11 @@ text_col <- function(x){
   else crayon::black(x)
 }
 
+#' @title Warn if condition fails
+#' @description
+#' Same as `stopifnot()` but warns instead
+#' @param x a condition to be tested
+#' @return NULL
 warnifnot <- function(x){
   if(!isTRUE(x)){
     test <- deparse1(substitute(x))
@@ -20,7 +30,10 @@ warnifnot <- function(x){
   }
 }
 
-
+#' @title Suppress duplicate warnings or messages
+#' @description Collapse duplicate messages.
+#' @param expr an expression
+#' @return output of expr
 suppressExtraMessages <- function(expr){
   .f <- function(){
     expr
@@ -44,5 +57,5 @@ suppressExtraMessages <- function(expr){
   return(out())
 }
 
-capture_output <- utils::getFromNamespace("capture_output", "purrr")
+
 

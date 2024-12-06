@@ -1,3 +1,10 @@
+#' @title Add fitted line and equation geom layer
+#' @description a wrapper for `ggpmisc::stat_ma_line()` and `ggpmisc::stat_ma_eq()`
+#' @param x a ggplot object
+#' @param method the method of fitting ("MA": major axis, "OLS": ordinary least squares, "SMA": standardized major axis, "RMA": range major axis)
+#' @param rr.digits,coef.digits the number of digits to display
+#' @param labels a vector of what to label. ("eq", "R2", "P", "n")
+#' @return a ggplot object
 geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels = c("eq", "R2")){
   list(
     ggpmisc::stat_ma_line(method = method),
@@ -10,13 +17,24 @@ geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels
   )
 }
 
-
+#' @title Latex label
+#' @description a wrapper for `latex2exp::Tex()`
+#' @param x the latex command without the `$`.
+#' @param italic if TRUE italicize the output
+#' @param ... additional arguments passed to `latex2exp::Tex()`
+#' @return a plotmath expression
 tex <- function(x, italic = TRUE, ...){
   latex2exp::TeX(sprintf("$%s$", x), italic = italic, ...)
 }
 
 
-# Generate marginal effect data frame for plotting
+#' @title Generate marginal effect data frame for plotting
+#' @description Generate marginal effect data frame for plotting
+#' @param model the model object
+#' @param terms the terms for which to compute the marginal effects. Has the same behavior as in `sjPlot::plot_model()`
+#' @param n specifies the density of points along `terms`
+#' @param ci the interval of upper and lower bounds
+#' @return a data.frame
 marginal_effects <- function(model, terms, n = 300, ci = 0.95){
 
   fam <- insight::get_family(model)

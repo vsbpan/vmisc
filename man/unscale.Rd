@@ -2,12 +2,15 @@
 % Please edit documentation in R/transform.R
 \name{unscale}
 \alias{unscale}
+\alias{unscalelog}
 \title{Unscale variable}
 \usage{
 unscale(x)
+
+unscalelog(logx)
 }
 \arguments{
-\item{x}{a vector}
+\item{x, logx}{a vector}
 }
 \value{
 a function

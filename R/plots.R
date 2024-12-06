@@ -1,3 +1,11 @@
+#' @title Rank size plot
+#' @description Generate a rank size plot
+#' @param x a vector of numeric values greater than 0
+#' @param omit_zero If TRUE (default), remove 0 from x.
+#' @param add a logical value indicating whether to overlay points upon an existing plot
+#' @param plot a logical value indicating whether to plot the results.
+#' @param ... additional arguments passed to \code{points()} or \code{plot()}
+#' @return a data.frame of the rank and log values
 plot_rank_size <- function(x, omit_zero = TRUE, add = FALSE, plot = TRUE, ...){
   if(omit_zero){
     x <- omit_zero(x)
@@ -193,7 +201,15 @@ ggbiplot <- function(x, choices = c(1,2), scaling = 2,
   return(g)
 }
 
-
+#' @title Plot raw moments against the first moment
+#' @description Plot raw moments against the first moment. Useful for testing the prediction of scale collapse (i.e., when the slope of the relationship between the pth raw moment and the first raw moment is p).
+#' @param data_list a list of numeric sample values
+#' @param choice a vector of pth moments
+#' @param center whether to compute the central moment instead of the raw moments (default is FALSE)
+#' @param plot a logical value indicating whether to plot the results.
+#' @param rr.digits,coef.digits number of digits to display
+#' @param method the method of fitting ("MA": major axis, "OLS": ordinary least squares, "SMA": standardized major axis, "RMA": range major axis)
+#' @return a data.frame which is used to generate the ggplot
 plot_moments <- function(data_list, choice = c(2:4),
                          plot = TRUE,
                          center = FALSE,

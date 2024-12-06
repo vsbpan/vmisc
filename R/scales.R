@@ -1,3 +1,11 @@
+#' @title Fancy ggplot scales
+#' @description variously stolen from other places
+#' @param l character string
+#' @param name The name of the scale. Used as the axis or legend title. If `waiver()`, the default, the name of the scale is taken from the first mapping used for that aesthetic. If NULL, the legend title will be omitted.
+#' @param axis "x" log the x-axis; "y" log the y-axis
+#' @param ... additional arguments
+#' @return an expression
+#' @rdname fancy_scale
 fancy_linear <- function(l) {
   # turn in to character string in scientific notation
   l <- format(l, scientific = FALSE)
@@ -5,6 +13,7 @@ fancy_linear <- function(l) {
   parse(text=l)
 }
 
+#' @rdname fancy_scale
 fancy_scientific <- function(l) {
   # turn in to character string in scientific notation
   l <- format(l, scientific = TRUE)
@@ -22,7 +31,7 @@ fancy_scientific <- function(l) {
   parse(text=l)
 }
 
-
+#' @rdname fancy_scale
 fancy_scientificb <- function(l) {
   # turn in to character string in scientific notation
   l <- format(l, scientific = TRUE)
@@ -38,9 +47,7 @@ fancy_scientificb <- function(l) {
   parse(text=l)
 }
 
-scientific_10_exp_labels <- scales::trans_format("log10", scales::math_format(10^.x) )
-scientific_10_exp_breaks <- scales::trans_format("log10", function(x) 10^x )
-
+#' @rdname fancy_scale
 scale_x_ta <- function(name = ggplot2::waiver(), ...){
   ggplot2::scale_x_continuous(
     name,
@@ -49,15 +56,8 @@ scale_x_ta <- function(name = ggplot2::waiver(), ...){
     ...)
 }
 
-scale_y_ta <- function(name = ggplot2::waiver(), ...){
-  ggplot2::scale_y_continuous(
-    name,
-    breaks = c(-pi, -pi / 2, 0, pi / 2, pi),
-    labels = c(expression(-pi), expression(-pi/2), 0, expression(pi/2), expression(pi)),
-    ...)
-}
-
-scale_xy_log <- function(x, axis = c("x", "y")){
+#' @rdname fancy_scale
+scale_xy_log <- function(name = ggplot2::waiver(), axis = c("x", "y")){
   axis <- match.arg(axis, several.ok = TRUE)
   if("x" %in% axis){
     resx <- list(

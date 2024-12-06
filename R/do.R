@@ -1,4 +1,14 @@
-# lapply() with progress bar and parallel support.
+#' @title lapply with multi-session parallel evaluation using doParallel backend
+#' @description
+#' Same deal as `lapply()` but allows for parallel computing, progress bar, and fake package compatability handling.
+#' @param x a vector
+#' @param FUN a function to be evaluated on each element of x
+#' @param cores number of parallel sessions used for function evaluation of vector elements.
+#' @param inorder If TRUE (default), each function evaluation of vector elements must be in the same order as they are supplied
+#' @param export_fun_only If TRUE (default), only functions in the global environment are exported to parallel sessions
+#' @param fake_pkg_root_path the path of the fake package
+#' @param ... additional arguments passed to FUN
+#' @return a list
 pb_par_lapply <- function(x, FUN,
                           cores = 1,
                           ...,
@@ -106,8 +116,16 @@ pb_par_lapply <- function(x, FUN,
 }
 
 
-
-# Timeout wrapper
+#' @title Timeout wrapper
+#' @description
+#' Evaluate an expression within a limited time. If timed out, throws an error.
+#' @param expr an expression to be evaluated
+#' @param substitute If true (default), substitute the expression
+#' @param envir In what environment to evaluate the expression? Default to parent environment.
+#' @param timeout How many seconds to wait before timing out
+#' @param cpu,elapsed double (of length one). Set a limit on the total or elapsed CPU time in seconds, respectively.
+#' @param ... additional arguments not passed to anything at the moment.
+#' @return the output of the expression
 with_timeout <- function(expr, substitute = TRUE, envir = parent.frame(), timeout,
                          cpu = timeout, elapsed = timeout, ...){
   if (substitute)
@@ -129,7 +147,13 @@ with_timeout <- function(expr, substitute = TRUE, envir = parent.frame(), timeou
   })
 }
 
-# lapply() but with names(z) <- x
+#' @title lapply with append_name()
+#' @description
+#' lapply() but with names(z) <- x
+#' @param x a vector
+#' @param FUN a function to be applied to each element of the vector x
+#' @param ... additional arguments
+#' @return a list
 lapply_name <- function(x, FUN, ...){
   z <- lapply(x, FUN, ...)
   names(z) <- x
@@ -194,14 +218,21 @@ dist2 <- function(l, FUN, is_symmetric = TRUE){
 }
 
 
-# Apply a function .f to each element of a list x that satisfy the condition .p(.x)
-map_if_depth <- function(x, .f, .p){
+#' @title Conditional map to each nest element of a nested list
+#' @description
+#' Apply a function .f to each nested element of a list x that satisfy the condition .p(.x).
+#' @param x a vector
+#' @param .f a function to be evaluated on each element of x if .p is TRUE
+#' @param .p a condition to test on each element of x
+#' @param .f2 a function to be evaluated on each element of x if .p is FALSE. Default to identity
+#' @return the output of the expression
+map_if_depth <- function(x, .f, .p, .f2 = identity){
   depth <- purrr::pluck_depth(x) - 1
   f2 <- function(.x, .p){
     if(.p(.x)){
       .f(.x)
     } else {
-      .x
+      .f2(.x)
     }
   }
   for(i in 0:depth){

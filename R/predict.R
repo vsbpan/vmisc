@@ -1,15 +1,16 @@
-# Get posterior draws on the response or link scale based on specified terms.
-# `terms` has the same behavior as in `sjPlot::plot_model()`
-# `n` specifies the number of draws.
-# `newdata2` passes extra data not specified in `terms`.
-# `along_n` specifies the density of points along `terms`
-# `transFUN` passes a function used to transform the posterior draws. Defaults to identity.
+#' @title Get posterior draws on the response or link scale based on specified terms.
+#' @description Get posterior draws on the response or link scale based on specified terms. Specific values of terms can be specified with the `[]` syntax. e.g., `[2,3,4]` or `[c(1:3)]`. Supports all model object class with a valid `posterior_epred()` method.
+#' @param model model object
+#' @param terms the terms for which to compute the marginal effects. Has the same behavior as in `sjPlot::plot_model()`
+#' @param n specifies the number of draws.
+#' @param newdata2 passes extra data not specified in `terms`. Can be trial size or random effects.
+#' @param along_n specifies the density of points along `terms`
+#' @param transFUN passes a function used to transform the posterior draws. Defaults to identity.
+#' @param scale return the predictions on the link scale ("link") or response scale ("response"). Default is "response".
 spaghetti <- function(model, terms, n = 100, along_n = 300, newdata2 = NULL,
                           transFUN = NULL, scale = c("response", "link")){
   if(is.null(transFUN)){
-    f <- function(x) {
-      x
-    }
+    f <- identity
   } else {
     f <- match.fun(transFUN)
   }
@@ -49,10 +50,11 @@ spaghetti <- function(model, terms, n = 100, along_n = 300, newdata2 = NULL,
 }
 
 
-# Takes a model and specified predictor terms and format newdata used for predictions.
-# Covariates not specified in terms are set to:
-## numeric: the mean
-## otherwise: set to unique entries.
+#' @title Takes a model and specified predictor terms and format newdata used for predictions.
+#' @description  Covariates not specified in terms are set to: (numeric = the mean), (otherwise: set to unique entries)
+#' @param model the model object
+#' @param terms the terms for which to compute the marginal effects. Has the same behavior as in `sjPlot::plot_model()`
+#' @param n specifies the number of draws.
 prepare_newdata <- function(model, terms = NULL, n = 300){
 
   predictor_frame <- insight::get_data(model)
@@ -115,6 +117,7 @@ prepare_newdata <- function(model, terms = NULL, n = 300){
 
 # Posterior prediction like method for `gam` objects.
 #' @export
+#' @rdname posterior_epred
 posterior_epred.gam <- function(x, newdata = NULL,
                                 ndraws = 100,
                                 unconditional = FALSE,
@@ -141,15 +144,12 @@ posterior_epred.gam <- function(x, newdata = NULL,
 
 # Poterior prediction method for `brmsfit`.
 #' @export
+#' @rdname posterior_epred
 posterior_epred.brmsfit <- function (x, newdata = NULL,
-                                     re_formula = NULL, re.form = NULL,
+                                     re_formula = NULL,
                                      resp = NULL, dpar = NULL, nlpar = NULL,
                                      ndraws = NULL, draw_ids = NULL,
                                      sort = FALSE, scale = c("response", "link"), ...) {
-  cl <- match.call()
-  if ("re.form" %in% names(cl) && !missing(re.form)) {
-    re_formula <- re.form
-  }
   x <- brms::restructure(x)
   prep <- brms::prepare_predictions(x, newdata = newdata, re_formula = re_formula,
                                     resp = resp, ndraws = ndraws, draw_ids = draw_ids,
@@ -177,6 +177,7 @@ posterior_epred.brmsfit <- function (x, newdata = NULL,
 
 # Generate predicted draws
 #' @export
+#' @rdname posterior_epred
 posterior_epred.nls <- function(x,
                                 newdata = NULL,
                                 ndraws = 100,
@@ -212,6 +213,11 @@ posterior_epred.nls <- function(x,
   return(preds)
 }
 
+
+#' @title Variance covariance matrix
+#' @description get the VCV matrix
+#' @param object an object of class 'nls'
+#' @return the variance covariance matrix
 #' @export
 vcov.nls <- function(object){
   res <- tryCatch({

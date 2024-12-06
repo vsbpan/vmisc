@@ -17,7 +17,12 @@ ordered_stat <- function(x, n){
   }
 }
 
-# compute pooled sd
+#' @title Compute pooled SD
+#' @description
+#' compute pooled standard deviation
+#' @param v variance of group i
+#' @param n sample size of group i
+#' @return the pooled SD
 pooled_SD <- function(v, n){
   stopifnot(length(v) == length(n))
   res <- rep(NA_real_, length(v))
@@ -154,7 +159,6 @@ cv<-function(x, method = c("standard","Sokal","Breunig","Bao"),na.rm = FALSE){
 #'  \eqn{J < 0} corresponds to a more even distribution (underdispersed)
 #'  \eqn{J > 0} corresponds to a more aggregated distribution (overdispersed)
 #'  @export
-
 J.index <- function(x=NULL,mean=NULL,var=NULL, na.rm = FALSE){
   if(any(x < 0)) {
     warning("Data contain non-positive values")

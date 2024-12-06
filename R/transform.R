@@ -1,7 +1,8 @@
 #' @title Unscale variable
 #' @description Generate a function from a vector that can back transform a Z-score transformed vector to its original scale.
-#' @param x a vector
+#' @param x,logx a vector
 #' @return a function
+#' @rdname unscale
 unscale <- function(x){
   function(z){
     mean(x) + sd(x) * z
@@ -9,6 +10,7 @@ unscale <- function(x){
 }
 
 # Handly function to back transform log scale variables
+#' @rdname unscale
 unscalelog <- function(logx){
   function(z) {
     exp(mean(logx, na.rm = TRUE) + sd(logx, na.rm = TRUE) * z)

@@ -1,10 +1,15 @@
-# Check if path is relative to current working directory
+#' @title Check if path is relative to current working directory
+#' @description Check if path is relative to current working directory
+#' @param x vector of paths
+#' @return a logical vector the same length as x
 is_relative_path <- function(x){
   !grepl(getwd(), x)
 }
 
-
-# Append working directory to the path
+#' @title Append working directory to the paths
+#' @description Append working directory to the paths
+#' @param x vector of paths
+#' @return a character vector the same length as x
 abs_path <- function(x){
   if(is_relative_path(x)){
     paste(getwd(),x, sep = "/")
@@ -13,8 +18,11 @@ abs_path <- function(x){
   }
 }
 
-
-# Create directory if it doesn't exit
+#' @title Create directory if it doesn't exists
+#' @description Create directory if it doesn't exists
+#' @param root_path path to where the directory should be located
+#' @param dir_name name of the directory
+#' @return NULL
 init_dir <- function(root_path, dir_name){
   stopifnot(length(dir_name) == 1)
   stopifnot(length(root_path) == 1)
@@ -33,7 +41,13 @@ init_dir <- function(root_path, dir_name){
   }
 }
 
-# Move files with file.rename() with a progress bar
+#' @title Move files with `file.rename()` with a progress bar
+#' @description Move files with `file.rename()` with a progress bar
+#' @param from_dir path where the files should be looked for
+#' @param to_dir path to where the files should be moved
+#' @param file_names name of files to be moved
+#' @param pb if TRUE, show a progress bar
+#' @return a logical vector of whether moving each file succeeded
 move_files <- function (from_dir, to_dir, file_names, pb = FALSE){
   to_dir <- assert_dir(to_dir)
   from_dir <- assert_dir(from_dir)

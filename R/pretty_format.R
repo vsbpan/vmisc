@@ -1,3 +1,9 @@
+#' @title Format seconds to readable format
+#' @description
+#' Format seconds to readable format
+#' @param x seconds
+#' @return a character string
+#' @rdname sec_format
 # Format seconds into nice H:S:M format
 hms_runtime <- function(x){
   h <- floor(x / 3600)
@@ -7,6 +13,7 @@ hms_runtime <- function(x){
 }
 
 # Format seconds into nice H:M:S format
+#' @rdname sec_format
 hms_format <- function(x){
   h <- floor(x / 3600)
   m <- floor((x - h * 3600) / 60)
@@ -15,13 +22,18 @@ hms_format <- function(x){
 }
 
 # Format seconds into nice H:M format
+#' @rdname sec_format
 hm_format <- function(x){
   h <- floor(x / 3600)
   m <- round((x - h * 3600) / 60)
   return(sprintf("%02d:%02d", h,m))
 }
 
-# Return starts based on p value
+#' @title Return stars based on p value.
+#' @description
+#' Return stars based on p value like in `summary.lm()`
+#' @param x a vector of p values
+#' @return a character vector of stars
 stars_pval <- function(x){
   if(is.null(x)){
     return("")
@@ -34,14 +46,21 @@ stars_pval <- function(x){
   stars[i]
 }
 
-# Left align text
+#' @title Left align text
+#' @description Left align text
+#' @param x a vector of character strings
+#' @return a vector of character strings
 left_align_text <- function(x){
   n <- max(nchar(x))
   vapply(x, function(z) paste0(z, paste0(rep(" ", n - nchar(z)), collapse = "")), character(1))
 }
 
 
-# Wrapper for formatC()
+#' @title Find the significant figures
+#' @description Find the significant figures
+#' @param x a vector of numeric values
+#' @param digits an atomic integer indicating the number of significant figures.
+#' @return a character vector
 sigfig <- function(x, digits = 2){
   if(x == 0){
     return(paste0("0.",paste0(rep("0", digits), collapse = "")))

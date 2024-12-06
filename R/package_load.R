@@ -1,3 +1,14 @@
+#' @title Load complete package without copying .dll file
+#' @description `vmisc::load_all2()` loads in compiled C++ code without making a copy of the `pkgname.dll` file, but sometimes have problems adding the newly recompiled C++ functions to the R interface; it should be used by default. `pkgload::load_all()` is more error free, but should be used strictly for development mode because the backend `foreach() %dopar% {}`of `vmisc::pb_par_lapply()` causes the `pkgname.dll` file to be copied across multiple temporary directories. When the `pkgname.dll` file is large, the disk space is used up very quickly and can cause memory overflow.
+#' @param path see `?pkgload::load_all()`
+#' @param reset see `?pkgload::load_all()`
+#' @param recompile see `?pkgload::load_all()`
+#' @param export_all see `?pkgload::load_all()`
+#' @param helpers see `?pkgload::load_all()`
+#' @param quiet  see `?pkgload::load_all()`
+#' @param ... see `?pkgload::load_all()`
+#' @return NULL
+
 load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all = TRUE,
                        helpers = TRUE, quiet = FALSE, ...) {
   if (inherits(path, "package")) {

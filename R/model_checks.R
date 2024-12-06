@@ -1,4 +1,5 @@
 #' @export
+#' @rdname simulateResiduals
 simulateResiduals.brmsfit <- function(x, integer = NULL, plot = FALSE, asFactor = FALSE, ...) {
   stopifnot(brms::is.brmsfit(x))
   if(is.null(integer)){
@@ -65,12 +66,13 @@ simulateResiduals.brmsfit <- function(x, integer = NULL, plot = FALSE, asFactor 
 }
 
 #' @export
+#' @rdname simulateResiduals
 simulateResiduals.nls <- function(x, asFactor = FALSE, plot = FALSE, integer = FALSE, ...) {
 
   pred <- predict(x)
 
   dharma.obj <- DHARMa::createDHARMa(
-    simulatedResponse = replicate(500, stats::rnorm(length(pred), pred, stats::sigma(x))),
+    simulatedResponse = replicate(1000, stats::rnorm(length(pred), pred, stats::sigma(x))),
     observedResponse = insight::get_response(x),
     fittedPredictedResponse = pred,
     integerResponse = integer)
@@ -83,6 +85,7 @@ simulateResiduals.nls <- function(x, asFactor = FALSE, plot = FALSE, integer = F
 }
 
 #' @export
+#' @rdname simulateResiduals
 simulateResiduals.default <- function(x, plot = FALSE, asFactor = NULL, ...){
   dharma.obj <- DHARMa::simulateResiduals(x, ...)
 

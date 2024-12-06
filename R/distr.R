@@ -1,3 +1,7 @@
+#' @title Compute the mean of distribution via simulation
+#' @description Compute the mean of distribution by finding the sample mean of 10,000 draws from the distribution
+#' @param x a 'distr' object
+#' @return an atomic numeric vector
 distr_mu <- function(x){
   warnifnot(is.distr(x))
   dist_name <- x$name
@@ -12,7 +16,10 @@ distr_mu <- function(x){
   return(mu)
 }
 
-
+#' @title Check whether density function, random number generation, cumulative distribution function, and quantile function are available for the specific distribution.
+#' @description Compute the mean of distribution by finding the sample mean of 10,000 draws from the distribution
+#' @param x a 'distr' object or a character string of the name of the distribution.
+#' @return a list of atomic boolean
 distr_fun <- function(x){
   if(is.distr(x) || !is.character(x)){
     dist_name <- x$name

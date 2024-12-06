@@ -1,4 +1,7 @@
-# Bind matrices together into an array along the z dimension
+#' @title Bind matrices together into an array along the z dimension
+#' @description Bind matrices together into an array along the z dimension
+#' @param ... matrices of the same width and height
+#' @return a three dimensional array
 zbind <- function(...){
   mcall <- as.list(match.call(expand.dots = TRUE))[-1]
 
@@ -14,7 +17,10 @@ zbind <- function(...){
         ))
 }
 
-# Reverse name and value
+#' @title Reverse name and value
+#' @description Reverse name and value
+#' @param x a named vector
+#' @return a named character vector
 reverse_names <- function(x){
   val <- x
   nms <- names(x)
@@ -22,8 +28,11 @@ reverse_names <- function(x){
   return(nms)
 }
 
-
-# Returns the same object with supplied names as attribute
+#' @title Same thing as `setNames()`
+#' @description Same thing as `setNames()`
+#' @param x an object
+#' @param name the name
+#' @return a named vector
 append_name <- function(x, name){
   names(x) <- name
   x
@@ -97,7 +106,10 @@ seq_interval <- function(x, length.out = 300, by = NULL, na.rm = FALSE){
 }
 
 
-# Find each empty list element then drop them
+#' @title Find each empty list element then drop them
+#' @description Find each empty list element then drop them
+#' @param x list of a bunch of nested lists
+#' @return a list
 drop_empty_list <- function(x){
   f <- function(x){
     depth <- purrr::pluck_depth(x) - 2
@@ -109,7 +121,10 @@ drop_empty_list <- function(x){
   f(f(x))
 }
 
-# Turn named matrix into a named vector
+#' @title Turn named matrix into a named vector
+#' @description Turn named matrix into a named vector
+#' @param x matrix
+#' @return a named vector
 flatten_mat_name <- function(x){
   cn <- colnames(x)
   rn <- rownames(x)
@@ -179,15 +194,22 @@ unmelt <- function(x){
 }
 
 
-# Set rowname as the first column
+#' @title Set rowname as the first column
+#' @description Set rowname as the first column
+#' @param x matrix or data.frame
+#' @param rn name of the rowname column
+#' @return a matrix or data.frame
 keep_rowname <- function(x, rn = "rn"){
   res <- cbind("rn" = rownames(x), x)
-  names(res)[1] <- rn
+  colnames(res)[1] <- rn
   res
 }
 
 
-# Convert formula as function
+#' @title Convert formula as function
+#' @description Convert formula as function
+#' @param x the formula
+#' @return a function
 #' @export
 as.function.formula <- function(x) {
   cmd <- as.character(x)[3]
