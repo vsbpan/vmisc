@@ -16,9 +16,9 @@ wipe_functions <- function(){
 #' @return NULL
 reload <- function(dev = FALSE, package = fake_pkg()){
   if(dev){
-    source(paste(path.package(package), "init_dev.R", sep = "/"))
+    pkgload::load_all(package)
   } else {
-    source(paste(path.package(package), "init.R", sep = "/"))
+    vmisc::load_all2(package)
   }
 }
 

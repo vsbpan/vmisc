@@ -81,4 +81,10 @@ sigfig <- function(x, digits = 2){
   return(label)
 }
 
-
+#' @title Find object size in pretty format
+#' @description Find object size in pretty format
+#' @param x the object
+#' @return pretty object size
+pretty_size <- function(x){
+  prettyunits::pretty_bytes(utils::object.size(x))
+}

@@ -175,25 +175,25 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
 }
 
 .load_data2 <- function(path = "."){
-    path <- pkgload::pkg_path(path)
-    nsenv <- pkgload::ns_env(pkgload::pkg_name(path))
-    lazydata_env <- nsenv$.__NAMESPACE__.$lazydata
-    objs <- character()
-    sysdata <- pkgload::package_file("R", "sysdata.rda", path = path)
-    if (file.exists(sysdata)) {
-      objs <- c(objs, load(sysdata, envir = nsenv))
-    }
-    path_data <- pkgload::package_file("data", path = path)
-    if (file.exists(path_data)) {
-      paths <- dir(path_data, "\\.[rR][dD]a(ta)?$", full.names = TRUE)
-      # paths <- changed_files(paths) # Causing issues
-      objs <- c(objs, unlist(lapply(paths, load, envir = lazydata_env)))
-      paths <- dir(path_data, "\\.[rR]$", full.names = TRUE)
-      # paths <- changed_files(paths)
-      objs <- c(objs, unlist(lapply(paths, sys.source, envir = lazydata_env,
-                                    chdir = TRUE, keep.source = TRUE)))
-    }
-    invisible(objs)
+  path <- pkgload::pkg_path(path)
+  nsenv <- pkgload::ns_env(pkgload::pkg_name(path))
+  lazydata_env <- nsenv$.__NAMESPACE__.$lazydata
+  objs <- character()
+  sysdata <- pkgload::package_file("R", "sysdata.rda", path = path)
+  if (file.exists(sysdata)) {
+    objs <- c(objs, load(sysdata, envir = nsenv))
+  }
+  path_data <- pkgload::package_file("data", path = path)
+  if (file.exists(path_data)) {
+    paths <- dir(path_data, "\\.[rR][dD]a(ta)?$", full.names = TRUE)
+    # paths <- changed_files(paths) # Causing issues
+    objs <- c(objs, unlist(lapply(paths, load, envir = lazydata_env)))
+    paths <- dir(path_data, "\\.[rR]$", full.names = TRUE)
+    # paths <- changed_files(paths)
+    objs <- c(objs, unlist(lapply(paths, sys.source, envir = lazydata_env,
+                                  chdir = TRUE, keep.source = TRUE)))
+  }
+  invisible(objs)
 }
 
 .library.dynam3 <- function(path = ".", lib = ""){

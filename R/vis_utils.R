@@ -35,7 +35,7 @@ tex <- function(x, italic = TRUE, ...){
 #' @param n specifies the density of points along `terms`
 #' @param ci the interval of upper and lower bounds
 #' @return a data.frame
-marginal_effects <- function(model, terms, n = 300, ci = 0.95){
+marginal_effects <- function(model, terms, n = 300, ci = 0.95, ...){
 
   fam <- insight::get_family(model)
   if(!inherits(fam,"family")){
@@ -71,7 +71,7 @@ marginal_effects <- function(model, terms, n = 300, ci = 0.95){
     names(new_data)[names(new_data) == "cat"] <- insight::find_response(model)
 
   } else {
-    pred <- suppressWarnings(predict(model, newdata = new_data, se = TRUE, type = "link"))
+    pred <- suppressWarnings(predict(model, newdata = new_data, se = TRUE, ...))
 
     new_data <- cbind(new_data,
                       "yhat_link" = pred$fit,

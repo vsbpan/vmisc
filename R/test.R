@@ -33,3 +33,55 @@ LRT <- function(model_candidate, model_ref){
   }
   invisible(data.frame( "Chisq" = LLR, "df" = df,"P" = P))
 }
+
+
+#' @title Corrected Akaike's An Information Criterion (AICc)
+#' @description Calculate AICc taking into account small sample size bias
+#' @param object The object from which log likelihood can be extracted
+#' @param ... additional fitted model objects.
+#' @param k the penalty on model complexity. Default is 2.
+#' @details
+#' The formula for AICc is given by:
+#' \deqn{AIC_c = -2\ln{\mathcal{L}(x)} + k  d \frac{n}{n - d - 1}}
+#' \eqn{d} is the number of parameters, \eqn{k} is the penalty, \eqn{n} is the sample size, and \eqn{\mathcal{L}(x)} is the likelihood.
+#'
+#' @return if just one object is provided, a numeric value of AICc is returned. If multiple objects are provided, a data.frame with rows corresponding to the objects and columns representing the number of parameters in the model and the AICc is returned.
+AICc <- function (object, ..., k = 2)
+{
+  dots <- as.list(match.call())[-1]
+  dots <- dots[!names(dots) == "k"]
+  if (length(dots) == 1) {
+    logLik <- logLik(object)
+    n <- attributes(logLik)$nobs
+    if (is.null(n)) {
+      n <- stats::nobs(object)
+    }
+    df <- attributes(logLik)$df
+    aicc <- as.numeric(logLik) * -2 + k * df * (n/(n - df -
+                                                     1))
+    if (n <= (df + 1)) {
+      warning("Sample size too small.")
+    }
+    return(aicc)
+  }
+  else {
+    out <- do.call("rbind", lapply(unname(dots), function(x) {
+      loglik <- logLik(eval(x))
+      n <- attributes(loglik)$nobs
+      if (is.null(n)) {
+        n <- stats::nobs(eval(x))
+      }
+      df <- attributes(loglik)$df
+      aicc <- as.numeric(loglik) * -2 + k * df * (n/(n -
+                                                       df - 1))
+      if (n <= (df + 1)) {
+        warning("Sample size too small.")
+      }
+      return(data.frame(model = deparse(x), AICc = aicc,
+                        df = df))
+    }))
+    out$dAICc <- out$AICc - min(out$AICc)
+    out <- out[order(out$AICc), ]
+    return(out)
+  }
+}

@@ -61,7 +61,7 @@ prepare_newdata <- function(model, terms = NULL, n = 300){
   yname <- insight::find_response(model)
   predictor_frame <- predictor_frame[,!names(predictor_frame) %in% yname, drop = FALSE]
 
-  rand_names <- insight::find_random(model)$random
+  rand_names <- insight::find_terms(model)$random
   var_names <- names(predictor_frame)
 
   v <- lapply(terms, function(z){

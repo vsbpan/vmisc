@@ -4,7 +4,7 @@
 \alias{marginal_effects}
 \title{Generate marginal effect data frame for plotting}
 \usage{
-marginal_effects(model, terms, n = 300, ci = 0.95)
+marginal_effects(model, terms, n = 300, ci = 0.95, ...)
 }
 \arguments{
 \item{model}{the model object}
