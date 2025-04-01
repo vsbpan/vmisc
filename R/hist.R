@@ -158,8 +158,8 @@ loghist.list <- function(x,
     breaks <- nclass
   } else {
     if(!is.null(by)){
+      x1 <- unlist(x, TRUE, FALSE)
       if(log.x){
-        x1 <- unlist(x, TRUE, FALSE)
         if(any(x1 == 0)){
           cli::cli_warn("Dropped {sum(stats::na.omit(x1) == 0)} zero value{?s}.")
         }
