@@ -6,11 +6,11 @@ distr_mu <- function(distr){
   warnifnot(is.distr(distr))
   assert_distr(distr)
   dist_name <- distr$name
-  params <- distr$params
+  param <- distr$param
   av_fun <- distr_fun(distr)
   if(av_fun$r){
     # Simulation based mean. Good enough for now. Need to add analytical and integration methods.
-    mu <- mean(do.call(paste0("r", dist_name), c(list("n" = 10000), params)))
+    mu <- mean(do.call(paste0("r", dist_name), c(list("n" = 10000), param)))
   } else {
     cli::cli_abort("Need {.fn r{dist_name}} to simulate mu. Analytical methods not available.")
   }
