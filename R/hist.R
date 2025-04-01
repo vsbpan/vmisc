@@ -2,12 +2,12 @@
 loghist.default <- function(x,
                     nclass = function(x){ceiling(log2(length(x)) + 1)},
                     by = NULL,
-                    log.p = FALSE,
+                    log.p = TRUE,
                     log.x = TRUE,
                     scale = FALSE,
                     delta = 1,
                     phi = 1,
-                    geom = c("line", "col"),
+                    geom = c("line", "col", "point"),
                     linewidth = 1,
                     distr_list = NULL,
                     draw_distr_args = list(
@@ -18,6 +18,7 @@ loghist.default <- function(x,
                       scale = scale
                     ),
                     hist_args = NULL,
+                    show_legend = TRUE,
                     ...){
 
   if(!missing(by)){
@@ -41,7 +42,7 @@ loghist.default <- function(x,
       }
 
       breaks <- seq_interval(x1, by = by, na.rm = TRUE)
-      breaks <- c(min(breaks) - by, breaks, max(breaks) + by)
+      breaks <- c(min(breaks, na.rm = TRUE) - by, breaks, max(breaks, na.rm = TRUE) + by)
     } else {
       stop("Must supply 'nclass' or 'by' to set the breaks.")
     }
@@ -60,7 +61,7 @@ loghist.default <- function(x,
     hist_args
   ))
 
-  if(!log.p && length(geom) == 2){
+  if(!log.p && length(geom) == 3){
     geom <- "col"
   } else {
     geom <- match.arg(geom)
@@ -95,6 +96,10 @@ loghist.default <- function(x,
     g <- g + ggplot2::geom_col(...)
   }
 
+  if(geom == "point"){
+    g <- g + ggplot2::geom_point(...)
+  }
+
   if(!is.null(distr_list)){
     g <- do.call("draw_distr",
                  c(
@@ -112,12 +117,12 @@ loghist.default <- function(x,
 loghist.list <- function(x,
                          nclass = 50,
                          by = NULL,
-                         log.p = FALSE,
+                         log.p = TRUE,
                          log.x = TRUE,
                          scale = FALSE,
                          delta = 1,
                          phi = 1,
-                         geom = c("line", "col"),
+                         geom = c("line", "col", "point"),
                          linewidth = 1,
                          distr_list = NULL,
                          draw_distr_args = list(
@@ -128,6 +133,7 @@ loghist.list <- function(x,
                            scale = scale
                          ),
                          hist_args = NULL,
+                         show_legend = TRUE,
                          ...){
 
   if(!missing(by)){
@@ -151,7 +157,7 @@ loghist.list <- function(x,
       }
 
       breaks <- seq_interval(x1, by = by, na.rm = TRUE)
-      breaks <- c(min(breaks) - by, breaks, max(breaks) + by)
+      breaks <- c(min(breaks, na.rm = TRUE) - by, breaks, max(breaks, na.rm = TRUE) + by)
     } else {
       stop("Must supply 'nclass' or 'by' to set the breaks.")
     }
@@ -179,7 +185,7 @@ loghist.list <- function(x,
   }) %>%
     do.call("rbind", .)
 
-  if(!log.p && length(geom) == 2){
+  if(!log.p && length(geom) == 3){
     geom <- "col"
   } else {
     geom <- match.arg(geom)
@@ -216,6 +222,10 @@ loghist.list <- function(x,
     g <- g + ggplot2::geom_col(aes(group = group, fill = group),
                                position = "dodge",
                                ...)
+  }
+
+  if(geom == "point"){
+    g <- g + ggplot2::geom_point(aes(color = group, group = group), ...)
   }
 
   if(!is.null(distr_list)){

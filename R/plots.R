@@ -185,19 +185,33 @@ ggbiplot <- function (x, choices = c(1, 2), scaling = 2, display = c("sites",
 #' @title Plot raw moments against the first moment
 #' @description Plot raw moments against the first moment. Useful for testing the prediction of scale collapse (i.e., when the slope of the relationship between the pth raw moment and the first raw moment is p).
 #' @param data_list a list of numeric sample values
+#' @param x A vector of the same length as data_list to be plotted as the x-axis. If is NULL, it will be calculated based on FUN.
+#' @param FUN a function to be applied to each element of the list for x if x is NULL.
 #' @param choice a vector of pth moments
 #' @param center whether to compute the central moment instead of the raw moments (default is FALSE)
 #' @param plot a logical value indicating whether to plot the results.
 #' @param rr.digits,coef.digits number of digits to display
 #' @param method the method of fitting ("MA": major axis, "OLS": ordinary least squares, "SMA": standardized major axis, "RMA": range major axis)
 #' @return a data.frame which is used to generate the ggplot
-plot_moments <- function(data_list, choice = c(2:4),
+plot_moments <- function(data_list,
+                         choice = c(2:4),
+                         x = NULL,
+                         FUN = "mean",
                          plot = TRUE,
                          center = FALSE,
                          rr.digits = 3,
                          coef.digits = 3,
                          method = "MA"){
-  choice <- c(1, choice)
+  if(is.null(x)){
+    if(is.character(FUN) && FUN == "mean"){
+      x_lab <-  tex("\\langle x \\rangle")
+    } else {
+      x_lab <-  sprintf("%s(x)", deparse1(substitute(FUN)))
+    }
+    x <- do.call("c",lapply(data_list, FUN))
+  } else {
+    x_lab <- deparse(substitute(x))
+  }
 
   out <- lapply(
     data_list,
@@ -205,11 +219,14 @@ plot_moments <- function(data_list, choice = c(2:4),
       res <- vapply(choice, FUN = function(p){
         moment(x, p)
       }, FUN.VALUE = numeric(1))
-      names(res)<- c("x", paste0(choice[-1]))
+      names(res)<- choice
       res
     }
   ) %>%
     bind_vec() %>%
+    dplyr::bind_cols(
+      "x" = x
+    ) %>%
     tidyr::gather(
       key = k, value = val, -x
     ) %>%
@@ -239,7 +256,7 @@ plot_moments <- function(data_list, choice = c(2:4),
       ggplot2::geom_point() +
       geom_lineeq(rr.digits = rr.digits, method = method, coef.digits = coef.digits) +
       scale_xy_log() +
-      ggplot2::labs(x = tex("\\langle x \\rangle"),
+      ggplot2::labs(x = x_lab,
            y = y_lab,
            color = "k") +
       ggplot2::theme_bw() +

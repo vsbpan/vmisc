@@ -49,12 +49,12 @@ omit_zero <- function(x, ...){
 loghist <- function(x,
                     nclass,
                     by = NULL,
-                    log.p = FALSE,
+                    log.p = TRUE,
                     log.x = TRUE,
                     scale = FALSE,
                     delta = 1,
                     phi = 1,
-                    geom = c("line", "col"),
+                    geom = c("line", "col", "point"),
                     linewidth = 1,
                     distr_list = NULL,
                     draw_distr_args = list(
@@ -65,6 +65,7 @@ loghist <- function(x,
                       scale = scale
                     ),
                     hist_args = NULL,
+                    show_legend = TRUE,
                     ...){
   UseMethod("loghist")
 }
