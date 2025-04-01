@@ -115,7 +115,7 @@ detach.vmisc <- function(x){
     message("goodbye!")
   }
   else {
-    message("package is not loaded and therefore cannot be unloaded.")
+    cli::cli_inform("package is not loaded and therefore cannot be unloaded.")
   }
 }
 

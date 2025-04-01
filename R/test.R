@@ -60,7 +60,7 @@ AICc <- function (object, ..., k = 2)
     aicc <- as.numeric(logLik) * -2 + k * df * (n/(n - df -
                                                      1))
     if (n <= (df + 1)) {
-      warning("Sample size too small.")
+      cli::cli_warn("Sample size too small.")
     }
     return(aicc)
   }
@@ -75,7 +75,7 @@ AICc <- function (object, ..., k = 2)
       aicc <- as.numeric(loglik) * -2 + k * df * (n/(n -
                                                        df - 1))
       if (n <= (df + 1)) {
-        warning("Sample size too small.")
+        cli::cli_warn("Sample size too small.")
       }
       return(data.frame(model = deparse(x), AICc = aicc,
                         df = df))

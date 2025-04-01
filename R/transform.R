@@ -123,10 +123,10 @@ adjust_prop <- function(x,
   na.v <- is.na(x)
 
   if(any(x[!na.v] > 1)){
-    stop("'x' contains values greater than 1")
+    cli::cli_abort("{.arg x} contains values greater than 1")
   }
   if(any(x[!na.v] < 0)){
-    stop("'x' contains negative values")
+    cli::cli_abort("{.arg x} contains negative values")
   }
 
   if(nudge.method == "drop"){
@@ -134,14 +134,14 @@ adjust_prop <- function(x,
     if(na.action != "remove"){
       if(na.action != "ignore"){
         na.action <- "ignore"
-        message("na.action defaulting to 'ignore'")
+        cli::cli_inform("{.arg na.action} defaulting to {.val ignore}")
       }
     }
   }
 
   if(any(na.v)){
     if(na.action == "fail"){
-      stop("'x' contains missing values")
+      cli::cli_abort("{.arg x} contains missing values")
     }
 
     if(na.action == "remove"){
@@ -149,9 +149,9 @@ adjust_prop <- function(x,
     } else {
       if(na.action == "ignore"){
         x_na_rm <- x[!na.v]
-        warning("'x' contains ignored missing values.")
+        cli::cli_warn("{.arg x} contains ignored missing values.")
       } else {
-        warning("'x' contains missing values. Values computed as is.")
+        cli::cli_warn("{.arg x} contains missing values. Values computed as is.")
       }
     }
   } else {
@@ -163,7 +163,7 @@ adjust_prop <- function(x,
     nudge.size <- "user_supplied"
   } else {
     if(nudge.method == "smithson"){
-      message("epsilon defaulting to 0.5")
+      cli::cli_inform("epsilon defaulting to 0.5")
       nudge.size <- "smithson_default"
       epsilon <- 0.5
     } else {
@@ -214,10 +214,10 @@ adjust_prop <- function(x,
   }
 
   if(any(x[!is.na(x)] > 1)){
-    warning("nudged 'x' contains values greater than 1")
+    cli::cli_warn("nudged {.arg x} contains values greater than 1")
   }
   if(any(x[!is.na(x)] < 0)){
-    warning("nudged 'x' contains negative values")
+    cli::cli_warn("nudged {.arg x} contains negative values")
   }
 
   x.trans <- switch(trans,
@@ -250,14 +250,14 @@ adjust_prop <- function(x,
 #' @param range A numeric vector specifying the lower and upper limit of the bins
 #' @param length.out An alternative way to specify the number of bins.
 #' @return a numeric vector
-bin <- function(x, by = 1, value = TRUE, range = c(min(x), max(x)), length.out = NULL){
+bin <- function(x, by = 1, value = TRUE, range = range(x, na.rm = TRUE), length.out = NULL){
   if(!is.null(by)){
     z <- seq(range[1], range[2], by = by)
   } else {
     if(!is.null(length.out)){
       z <- seq(range[1], range[2], length.out = length.out)
     } else {
-      stop("Must supply either 'by' or 'length.out'.")
+      cli::cli_abort("Must supply either {.arg by} or {.arg length.out}.")
     }
   }
 

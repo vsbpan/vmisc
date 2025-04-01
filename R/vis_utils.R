@@ -24,7 +24,7 @@ geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels
 #' @param ... additional arguments passed to `latex2exp::Tex()`
 #' @return a plotmath expression
 tex <- function(x, italic = TRUE, ...){
-  latex2exp::TeX(sprintf("$%s$", x), italic = italic, ...)
+  latex2exp::TeX(sprintf("%s", x), italic = italic, ...)
 }
 
 

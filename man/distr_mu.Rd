@@ -4,10 +4,10 @@
 \alias{distr_mu}
 \title{Compute the mean of distribution via simulation}
 \usage{
-distr_mu(x)
+distr_mu(distr)
 }
 \arguments{
-\item{x}{a 'distr' object}
+\item{distr}{a 'distr' object}
 }
 \value{
 an atomic numeric vector

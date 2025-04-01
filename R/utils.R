@@ -177,18 +177,20 @@ melt <- function (x, drop = FALSE){
 #' @title Reshape an array in long format to an array
 #' @description Reshape an array in the long format where each row correspond to the index of a value in the nth dimension and the value is stored in the 'val' column into an nth dimensional array.
 #' @param x a matrix or data.frame with named columns. The value of each cell is stored as a 'val' column.
+#' @param colname optional argument to change the name of the value column to look for. Default is 'val'.
 #' @return an array
-unmelt <- function(x){
+unmelt <- function(x, colname = "val"){
   nm <- colnames(x)
+  assert_atomic_type(colname, "character")
 
-  if(!("val" %in% nm)){
-    stop("Expects 'val' as a column in 'x'.")
+  if(!(colname %in% nm)){
+    cli::cli_abort("Expects {.val {colname}} as a column in {.arg x}.")
   }
 
-  nm <- nm[nm != "val"]
+  nm <- nm[nm != colname]
 
   array(
-    x[do.call("order", as.list(x[rev(nm)])), "val"],
+    x[do.call("order", as.list(x[rev(nm)])), colname],
     dim = Rfast::colMaxs(as.matrix(x[,nm]), value = TRUE)
   )
 }
@@ -231,7 +233,7 @@ kill_other_R_sessions <- function() {
     progs <- system("tasklist", intern = TRUE)
     Rsessions <- progs[grep("^R\\.exe|^Rterm\\.exe|^Rscript", progs)]
   } else {
-    stop("System not supported.")
+    cli::cli_abort("System not supported.")
   }
 
   current_sessions <- strsplit(Rsessions, "[[:space:]]") |>
@@ -247,7 +249,7 @@ kill_other_R_sessions <- function() {
   } else if (os == "Windows") {
     for(PID in kill_sessions) shell(paste0("taskkill /F /PID ", PID))
   } else {
-    stop("System not supported.")
+    cli::cli_abort("System not supported.")
   }
   return(invisible(NULL))
 }

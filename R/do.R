@@ -39,7 +39,7 @@ pb_par_lapply <- function(x, FUN,
   } else {
 
     if(!has_clust){
-      message(sprintf("\nInitializing %s parallel workers. . .", cores))
+      cli::cli_inform("Initializing {cores} parallel worker{?s}. . .")
 
       cl <- parallel::makeCluster(cores, outfile = "")
       doSNOW::registerDoSNOW(cl)
@@ -85,7 +85,7 @@ pb_par_lapply <- function(x, FUN,
       ),
       .final = function(x){
         if(!has_clust){
-          message("\nClosing parallel workers. . .")
+          cli::cli_inform("\nClosing parallel workers. . .")
           parallel::stopCluster(cl)
           has_clust <- TRUE
         }
@@ -101,7 +101,7 @@ pb_par_lapply <- function(x, FUN,
 
       if(!has_clust){
         message(e)
-        message("\nClosing parallel workers. . .")
+        cli::cli_inform("\nClosing parallel workers. . .")
         parallel::stopCluster(cl)
       }
     })

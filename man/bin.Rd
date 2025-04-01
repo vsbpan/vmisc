@@ -4,7 +4,7 @@
 \alias{bin}
 \title{Bin values}
 \usage{
-bin(x, by = 1, value = TRUE, range = c(min(x), max(x)), length.out = NULL)
+bin(x, by = 1, value = TRUE, range = range(x, na.rm = TRUE), length.out = NULL)
 }
 \arguments{
 \item{x}{a vector of numeric values}

@@ -204,7 +204,7 @@ plot_moments <- function(data_list,
                          method = "MA"){
   if(is.null(x)){
     if(is.character(FUN) && FUN == "mean"){
-      x_lab <-  tex("\\langle x \\rangle")
+      x_lab <-  tex("$\\langle x \\rangle$")
     } else {
       x_lab <-  sprintf("%s(x)", deparse1(substitute(FUN)))
     }
@@ -239,13 +239,13 @@ plot_moments <- function(data_list,
 
 
     if(center){
-      y_lab <- tex("\\langle x^k \\rangle - \\langle x \\rangle^k")
+      y_lab <- tex("$\\langle x^k \\rangle - \\langle x \\rangle^k$")
       out2 <- out2 %>%
         dplyr::mutate(
           val = val - x^k
         )
     } else {
-      y_lab <- tex("\\langle x^k \\rangle")
+      y_lab <- tex("$\\langle x^k \\rangle$")
     }
 
     g <- out2 %>%

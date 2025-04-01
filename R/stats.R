@@ -7,7 +7,7 @@ ordered_stat <- function(x, n){
   x <- Rfast::Sort(x, na.last = NA)
 
   if(n %% 1 > 0){
-    stop("n must be a non-zero integer")
+    cli::cli_abort("{.arg n} must be a non-zero integer")
   }
 
   if(n > 0){
@@ -117,7 +117,7 @@ beta_conjugate2 <- function(a, interval = 0.95, prior = rep(1, length(a))){
 #' @export
 cv<-function(x, method = c("standard","Sokal","Breunig","Bao"),na.rm = FALSE){
   if(isTRUE(any(x < 0))) {
-    warning("Data contain non-positive values")
+    cli::cli_warn("{.arg x} contain non-positive values")
   }
   if(na.rm){
     x <- x[!is.na(x)]
@@ -161,7 +161,7 @@ cv<-function(x, method = c("standard","Sokal","Breunig","Bao"),na.rm = FALSE){
 #'  @export
 J.index <- function(x=NULL,mean=NULL,var=NULL, na.rm = FALSE){
   if(any(x < 0)) {
-    warning("Data contain non-positive values")
+    cli::cli_warn("{.arg x} contain non-positive values")
   }
   if(!is.null(x)){
     var <- var(x, na.rm = na.rm)
@@ -187,7 +187,7 @@ J.index <- function(x=NULL,mean=NULL,var=NULL, na.rm = FALSE){
 #' @export
 cd <- function(x, robust = FALSE, na.rm = FALSE){
   if(any(x < 0)) {
-    warning("Data contain non-positive values")
+    cli::cli_warn("{.arg x} contain non-positive values")
   }
   if(robust){
     m <- stats::median(x, na.rm = na.rm)
@@ -269,7 +269,7 @@ Hoover <- function(x, na.rm = FALSE){
 #' @export
 lac <- function(x, n = NULL, interval = FALSE, na.rm = FALSE) {
   if(!is.numeric(x)){
-    stop("x must be a numeric vector")
+    cli::cli_abort("{.arg x} must be a numeric vector")
   }
   if(na.rm){
     x <- x[!is.na(x)]

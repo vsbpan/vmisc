@@ -30,13 +30,13 @@ init_dir <- function(root_path, dir_name){
   dest_dir <- gsub("//", "/", dest_dir)
 
 
-  if(dest_dir %in% list.dirs(root_path)){
-    message("Directory already exists. Function terminated.")
+  if(dest_dir %in% list.dirs(root_path, recursive = FALSE)){
+    cli::cli_alert_success("Directory already exists. Function terminated.")
     return(invisible(NULL))
   } else {
-    message(sprintf("Creating directory '%s' ...", dir_name))
+    cli::cli_inform(sprintf("Creating directory '%s' ...", dir_name))
     dir.create(dest_dir, showWarnings = TRUE)
-    message("Done!")
+    cli::cli_alert_success("Done!")
     return(invisible(NULL))
   }
 }

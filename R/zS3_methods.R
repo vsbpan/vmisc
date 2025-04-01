@@ -62,7 +62,8 @@ loghist <- function(x,
                       linetype = "dashed",
                       delta = delta,
                       phi = phi,
-                      scale = scale
+                      scale = scale,
+                      boot = FALSE
                     ),
                     hist_args = NULL,
                     show_legend = TRUE,
