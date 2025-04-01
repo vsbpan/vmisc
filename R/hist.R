@@ -273,7 +273,7 @@ calc_hist <- function(x, breaks,
     if(scale){
       mu <- mean(x)
       x <- x / mu^phi
-      p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
+      p <- hist(log(omit_zero(x)), plot = FALSE, breaks = breaks, ...)
       d <- data.frame(
         "x" = exp(p$mids),
         "p" = p$density * exp(p$mids)^(delta-1)
@@ -284,7 +284,7 @@ calc_hist <- function(x, breaks,
         "delta" = delta
       )
     } else {
-      p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
+      p <- hist(log(omit_zero(x)), plot = FALSE, breaks = breaks, ...)
       d <- data.frame(
         "x" = exp(p$mids),
         "p" = p$density / exp(p$mids)
