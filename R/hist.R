@@ -40,7 +40,7 @@ loghist.default <- function(x,
       }
       if(log.x){
         if(any(x1 == 0)){
-          cli::cli_warn("Dropped {sum(x1 == 0)} zero value{?s}.")
+          cli::cli_warn("Dropped {sum(stats::na.omit(x1) == 0)} zero value{?s}.")
           x1 <- omit_zero(x1)
         }
         x1 <- log(x1)
@@ -159,15 +159,18 @@ loghist.list <- function(x,
   } else {
     if(!is.null(by)){
       if(scale){
-        x1 <- range(unlist(lapply(x, function(z){z / mean(z, na.rm = TRUE)^phi}), TRUE, FALSE), na.rm = TRUE)
+        x1 <- unlist(x, TRUE, FALSE)
+        if(any(x1 == 0)){
+          cli::cli_warn("Dropped {sum(stats::na.omit(x1) == 0)} zero value{?s}.")
+        }
+        x1 <- range(unlist(lapply(x, function(z){
+          z <- omit_zero(z)
+          z / mean(z, na.rm = TRUE)^phi
+          }), TRUE, FALSE), na.rm = TRUE)
       } else {
         x1 <- range(unlist(x, TRUE, FALSE), na.rm = TRUE)
       }
       if(log.x){
-        if(any(x1 == 0)){
-          cli::cli_warn("Dropped zero values.")
-          x1 <- range(omit_zero(unlist(x, TRUE, FALSE)), na.rm = TRUE)
-        }
         x1 <- log(x1)
       }
 
@@ -270,10 +273,11 @@ calc_hist <- function(x, breaks,
   x <- x[!is.na(x)]
 
   if(log.x){
+    x <- omit_zero(x)
     if(scale){
       mu <- mean(x)
       x <- x / mu^phi
-      p <- hist(log(omit_zero(x)), plot = FALSE, breaks = breaks, ...)
+      p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
       d <- data.frame(
         "x" = exp(p$mids),
         "p" = p$density * exp(p$mids)^(delta-1)
@@ -284,7 +288,7 @@ calc_hist <- function(x, breaks,
         "delta" = delta
       )
     } else {
-      p <- hist(log(omit_zero(x)), plot = FALSE, breaks = breaks, ...)
+      p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
       d <- data.frame(
         "x" = exp(p$mids),
         "p" = p$density / exp(p$mids)
