@@ -165,7 +165,7 @@ loghist.list <- function(x,
       }
       if(log.x){
         if(any(x1 == 0)){
-          cli::cli_warn("Dropped zero value{?s}.")
+          cli::cli_warn("Dropped zero values.")
           x1 <- range(omit_zero(unlist(x, TRUE, FALSE)), na.rm = TRUE)
         }
         x1 <- log(x1)
