@@ -158,20 +158,20 @@ loghist.list <- function(x,
     breaks <- nclass
   } else {
     if(!is.null(by)){
-      if(scale){
+      if(log.x){
         x1 <- unlist(x, TRUE, FALSE)
         if(any(x1 == 0)){
           cli::cli_warn("Dropped {sum(stats::na.omit(x1) == 0)} zero value{?s}.")
         }
+      }
+      if(scale){
         x1 <- range(unlist(lapply(x, function(z){
           z <- omit_zero(z)
           z / mean(z, na.rm = TRUE)^phi
           }), TRUE, FALSE), na.rm = TRUE)
-      } else {
-        x1 <- range(unlist(x, TRUE, FALSE), na.rm = TRUE)
       }
       if(log.x){
-        x1 <- log(x1)
+        x1 <- log(omit_zero(x1))
       }
 
       breaks <- seq_interval(x1, by = by, na.rm = TRUE)
