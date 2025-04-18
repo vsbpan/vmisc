@@ -4,7 +4,13 @@
 \alias{bin}
 \title{Bin values}
 \usage{
-bin(x, by = 1, value = TRUE, range = range(x, na.rm = TRUE), length.out = NULL)
+bin(
+  x,
+  by = 1,
+  value = TRUE,
+  rangex = range(x, na.rm = TRUE),
+  length.out = NULL
+)
 }
 \arguments{
 \item{x}{a vector of numeric values}
@@ -13,7 +19,7 @@ bin(x, by = 1, value = TRUE, range = range(x, na.rm = TRUE), length.out = NULL)
 
 \item{value}{If \code{TRUE}, return the bin value, otherwise return the bin id}
 
-\item{range}{A numeric vector specifying the lower and upper limit of the bins}
+\item{rangex}{A numeric vector specifying the lower and upper limit of the bins}
 
 \item{length.out}{An alternative way to specify the number of bins.}
 }

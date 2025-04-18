@@ -247,15 +247,15 @@ adjust_prop <- function(x,
 #' @param x a vector of numeric values
 #' @param by the spacing between the bins
 #' @param value If \code{TRUE}, return the bin value, otherwise return the bin id
-#' @param range A numeric vector specifying the lower and upper limit of the bins
+#' @param rangex A numeric vector specifying the lower and upper limit of the bins
 #' @param length.out An alternative way to specify the number of bins.
 #' @return a numeric vector
-bin <- function(x, by = 1, value = TRUE, range = range(x, na.rm = TRUE), length.out = NULL){
-  if(!is.null(by)){
-    z <- seq(range[1], range[2], by = by)
+bin <- function(x, by = 1, value = TRUE, rangex = range(x, na.rm = TRUE), length.out = NULL){
+  if(!is.null(by) && is.null(length.out)){
+    z <- seq(rangex[1], rangex[2], by = by)
   } else {
     if(!is.null(length.out)){
-      z <- seq(range[1], range[2], length.out = length.out)
+      z <- seq(rangex[1], rangex[2], length.out = length.out)
     } else {
       cli::cli_abort("Must supply either {.arg by} or {.arg length.out}.")
     }
