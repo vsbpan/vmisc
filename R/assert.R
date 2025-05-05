@@ -94,7 +94,9 @@ assert_atomic_type <- function(x, type,
     if(null_as_is){
       return(NULL)
     } else {
-      stop(sprintf("`%s` of type '%s' is not '%s'!", deparse1(substitute(x)), class(x), type))
+      cli::cli_abort(
+        {"{.arg {deparse1(substitute(x))}} of type {.cls {class(x)}} is not {.cls {type}}"}
+      )
     }
   }
 
@@ -102,17 +104,17 @@ assert_atomic_type <- function(x, type,
     if(NA_as_is){
       return(NA)
     } else {
-      stop(sprintf("%s contains %s NA%s!",
-                   deparse1(substitute(x)),
-                   sum(is.na(x)),
-                   ifelse(sum(is.na(x)) > 1, "s", "")
-      ))
+      cli::cli_abort(
+        {"{.arg {deparse1(substitute(x))}} contains {sum(is.na(x))} NA{?s}!"}
+      )
     }
   }
 
   if(length(x) > 1){
     if(length(unique(x)) > 1){
-      stop(sprintf("%s of is not an atomic %s vector or an identical vector. %s unique values found. ", deparse1(substitute(x)), type, length(unique(x))))
+      cli::cli_abort(
+        {"{.arg {deparse1(substitute(x))}} is not an atomic {.cls {type}} vector or an identical vector. {length(unique(x))}  unique values found."}
+      )
     } else {
       x <- unique(x)
     }
@@ -123,7 +125,9 @@ assert_atomic_type <- function(x, type,
   }
 
   if(!test(x)){
-    stop(sprintf("`%s` of type '%s' is not '%s'!", deparse1(substitute(x)), class(x), type))
+    cli::cli_abort(
+      {"{.arg {deparse1(substitute(x))}} of type {.cls {class(x)}} is not {.cls {type}}"}
+    )
   }
 
   return(x)
@@ -135,7 +139,7 @@ assert_atomic_type <- function(x, type,
 #' @return a character string
 assert_dir <- function(x){
   if(!isTRUE(dir.exists(x))){
-    stop(paste0("There is no existing directory '", x,"' for ", as.character(substitute(x)), "."))
+    cli::cli_abort("There is no exsting director {.path {x}} for {.arg {as.character(substitute(x))}}.")
   }
   file.path(x)
 }
@@ -146,7 +150,7 @@ assert_dir <- function(x){
 #' @return NULL
 assert_package <- function(x){
   if(!requireNamespace(x, quietly = TRUE)){
-    stop(sprintf("This function requires the '%s' package, but loading failed.", x))
+    cli::cli_abort("This function requires the {.pkg {x}} package, but loading failed.")
   }
 }
 
@@ -174,7 +178,16 @@ has_function <- function(x){
 }
 
 
-
+assert_distr <- function(x, vcv = FALSE){
+  nms <- c("name", "param")
+  if(vcv){
+    nms <- c(nms, "vcv")
+  }
+  if(!all(nms %in% names(x))){
+    miss <- nms[!nms %in% names(x)]
+    cli::cli_abort("Missing {length(miss)} item{?s} {miss} in {.cls distr} object.")
+  }
+}
 
 
 

@@ -13,5 +13,5 @@ distr_fun(x)
 a list of atomic boolean
 }
 \description{
-Compute the mean of distribution by finding the sample mean of 10,000 draws from the distribution
+Check whether density function, random number generation, cumulative distribution function, and quantile function are available for the specific distribution.
 }

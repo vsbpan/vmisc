@@ -4,10 +4,12 @@
 \alias{unmelt}
 \title{Reshape an array in long format to an array}
 \usage{
-unmelt(x)
+unmelt(x, colname = "val")
 }
 \arguments{
 \item{x}{a matrix or data.frame with named columns. The value of each cell is stored as a 'val' column.}
+
+\item{colname}{optional argument to change the name of the value column to look for. Default is 'val'.}
 }
 \value{
 an array

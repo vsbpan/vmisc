@@ -7,6 +7,8 @@
 plot_moments(
   data_list,
   choice = c(2:4),
+  x = NULL,
+  FUN = "mean",
   plot = TRUE,
   center = FALSE,
   rr.digits = 3,
@@ -18,6 +20,10 @@ plot_moments(
 \item{data_list}{a list of numeric sample values}
 
 \item{choice}{a vector of pth moments}
+
+\item{x}{A vector of the same length as data_list to be plotted as the x-axis. If is NULL, it will be calculated based on FUN.}
+
+\item{FUN}{a function to be applied to each element of the list for x if x is NULL.}
 
 \item{plot}{a logical value indicating whether to plot the results.}
 

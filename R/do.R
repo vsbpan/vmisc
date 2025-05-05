@@ -39,7 +39,7 @@ pb_par_lapply <- function(x, FUN,
   } else {
 
     if(!has_clust){
-      message(sprintf("\nInitializing %s parallel workers. . .", cores))
+      cli::cli_inform("Initializing {cores} parallel worker{?s}. . .")
 
       cl <- parallel::makeCluster(cores, outfile = "")
       doSNOW::registerDoSNOW(cl)
@@ -85,7 +85,7 @@ pb_par_lapply <- function(x, FUN,
       ),
       .final = function(x){
         if(!has_clust){
-          message("\nClosing parallel workers. . .")
+          cli::cli_inform("\nClosing parallel workers. . .")
           parallel::stopCluster(cl)
           has_clust <- TRUE
         }
@@ -101,7 +101,7 @@ pb_par_lapply <- function(x, FUN,
 
       if(!has_clust){
         message(e)
-        message("\nClosing parallel workers. . .")
+        cli::cli_inform("\nClosing parallel workers. . .")
         parallel::stopCluster(cl)
       }
     })
@@ -161,8 +161,7 @@ lapply_name <- function(x, FUN, ...){
 }
 
 
-
-dist2 <- function(l, FUN, is_symmetric = TRUE){
+dist2 <- function(l, FUN, is_symmetric = TRUE, cores = 1){
   FUN <- match.fun(FUN)
   n <- length(l)
 
@@ -171,13 +170,13 @@ dist2 <- function(l, FUN, is_symmetric = TRUE){
     grid <- expand.grid("a" = seq_along(l), "b" = seq_along(l)) %>%
       dplyr::mutate(
         key = paste(pmin(a, b), pmax(a, b), sep = "-"),
-        i = cumsum(!(duplicated(key) | a == b))
+        dup = duplicated(key) | a == b,
+        i = cumsum(!dup)
       ) %>%
       as.data.frame()
 
     n2 <- choose(n,2)
-    res <- lapply(seq_len(nrow(grid)), function(i){
-      cat(sprintf("%s of %s \r", grid[i, "i"], n2))
+    res <- pb_par_lapply(seq_len(nrow(grid)), function(i, grid){
       if(grid[i, "dup"]){
         return(NA_real_)
       } else {
@@ -185,7 +184,7 @@ dist2 <- function(l, FUN, is_symmetric = TRUE){
           l[[grid[i,1]]],l[[grid[i,2]]]
         )
       }
-    }) %>%
+    }, grid = grid, cores = cores) %>%
       unlist() %>%
       matrix(nrow = n,
              ncol = n,
@@ -198,12 +197,11 @@ dist2 <- function(l, FUN, is_symmetric = TRUE){
   } else {
     grid <- expand.grid(seq_along(l), seq_along(l))
     n2 <- n^2
-    res <- lapply(seq_len(nrow(grid)), function(i){
-      cat(sprintf("%s of %s \r", i, n2))
+    res <- pb_par_lapply(seq_len(nrow(grid)), function(i, grid){
       FUN(
         l[[grid[i,1]]],l[[grid[i,2]]]
       )
-    }) %>%
+    }, grid = grid, cores = cores) %>%
       unlist() %>%
       matrix(nrow = n,
              ncol = n,

@@ -177,18 +177,20 @@ melt <- function (x, drop = FALSE){
 #' @title Reshape an array in long format to an array
 #' @description Reshape an array in the long format where each row correspond to the index of a value in the nth dimension and the value is stored in the 'val' column into an nth dimensional array.
 #' @param x a matrix or data.frame with named columns. The value of each cell is stored as a 'val' column.
+#' @param colname optional argument to change the name of the value column to look for. Default is 'val'.
 #' @return an array
-unmelt <- function(x){
+unmelt <- function(x, colname = "val"){
   nm <- colnames(x)
+  assert_atomic_type(colname, "character")
 
-  if(!("val" %in% nm)){
-    stop("Expects 'val' as a column in 'x'.")
+  if(!(colname %in% nm)){
+    cli::cli_abort("Expects {.val {colname}} as a column in {.arg x}.")
   }
 
-  nm <- nm[nm != "val"]
+  nm <- nm[nm != colname]
 
   array(
-    x[do.call("order", as.list(x[rev(nm)])), "val"],
+    x[do.call("order", as.list(x[rev(nm)])), colname],
     dim = Rfast::colMaxs(as.matrix(x[,nm]), value = TRUE)
   )
 }
@@ -215,4 +217,78 @@ as.function.formula <- function(x) {
   cmd <- as.character(x)[3]
   exp <- parse(text = cmd)
   function(...) eval(exp, list(...))
+}
+
+#' @title Kill parallel R sessions
+#' @description Kill parallel sessions
+#' @return NULL
+kill_other_R_sessions <- function() {
+  current_PID <- Sys.getpid()
+  os <- Sys.info()['sysname']
+
+  if (os == "Linux") {
+    progs <- system("ps aux", intern = TRUE)
+    Rsessions <- progs[grep("R/bin/exec", progs)]
+  } else if (os == "Windows") {
+    progs <- system("tasklist", intern = TRUE)
+    Rsessions <- progs[grep("^R\\.exe|^Rterm\\.exe|^Rscript", progs)]
+  } else {
+    cli::cli_abort("System not supported.")
+  }
+
+  current_sessions <- strsplit(Rsessions, "[[:space:]]") |>
+    lapply(function(x) ifelse(x == "", NA, x)) |>
+    lapply(stats::na.exclude) |>
+    lapply(as.vector) |>
+    sapply(`[`, 2)
+
+  kill_sessions <- current_sessions[current_sessions != current_PID]
+
+  if (os == "Linux") {
+    for(PID in kill_sessions) system(paste0("kill ", PID))
+  } else if (os == "Windows") {
+    for(PID in kill_sessions) shell(paste0("taskkill /F /PID ", PID))
+  } else {
+    cli::cli_abort("System not supported.")
+  }
+  return(invisible(NULL))
+}
+
+keep_len <- function(x, n){
+  purrr::keep(x, function(z){
+    length(z) > n
+  })
+}
+
+future <- function(x, n = 1){c(x[-(1:n)],rep(NA_real_, n))}
+
+
+# Combine multiple arrays of the same dimension by the last dimension
+abind <- function(...){
+  arrays <- list(...)
+
+  # Check if all arrays have the same dimensions
+  dims <- lapply(arrays, dim)
+  # Get the dimensions of a single array
+  array_dim <- dims[[1]]
+
+  # Determine the new dimensions of the combined array
+  n <- length(array_dim)
+
+  if (!all(sapply(dims, function(x) all(x[-length(x)] == array_dim[-n])))) {
+    cli::cli_abort("All arrays must have the same dimensions!")
+  }
+
+
+  combined_dim <- c(array_dim[-n], do.call("sum",purrr::map(dims, n)))
+
+  # Combine arrays along the last axis
+  combined_array <- array(unlist(arrays), dim = combined_dim)
+
+  return(combined_array)
+}
+
+
+na.omit2 <- function(x){
+  as.numeric(na.omit(x))
 }

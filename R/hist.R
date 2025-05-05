@@ -2,22 +2,24 @@
 loghist.default <- function(x,
                     nclass = function(x){ceiling(log2(length(x)) + 1)},
                     by = NULL,
-                    log.p = FALSE,
+                    log.p = TRUE,
                     log.x = TRUE,
                     scale = FALSE,
                     delta = 1,
                     phi = 1,
-                    geom = c("line", "col"),
+                    geom = c("line", "col", "point"),
                     linewidth = 1,
                     distr_list = NULL,
-                    draw_distr_args = list(
+                    distr_draw_args = list(
                       linewidth = linewidth,
                       linetype = "dashed",
                       delta = delta,
                       phi = phi,
-                      scale = scale
+                      scale = scale,
+                      boot = FALSE
                     ),
                     hist_args = NULL,
+                    show_legend = TRUE,
                     ...){
 
   if(!missing(by)){
@@ -26,7 +28,7 @@ loghist.default <- function(x,
 
   if(!is.null(nclass)){
     if(!is.null(by) && missing(by)){
-      stop("Only one of 'nclass' or 'by' should be supplied and the other set to NULL.")
+      cli::cli_abort("Only one of {.arg nclass} or {.arg by} should be supplied and the other set to {.val NULL}")
     }
     breaks <- nclass
   } else {
@@ -37,13 +39,17 @@ loghist.default <- function(x,
         x1 <- x
       }
       if(log.x){
+        if(any(x1 == 0)){
+          cli::cli_warn("Dropped {sum(stats::na.omit(x1) == 0)} zero value{?s}.")
+          x1 <- omit_zero(x1)
+        }
         x1 <- log(x1)
       }
 
       breaks <- seq_interval(x1, by = by, na.rm = TRUE)
-      breaks <- c(min(breaks) - by, breaks, max(breaks) + by)
+      breaks <- c(min(breaks, na.rm = TRUE) - by, breaks, max(breaks, na.rm = TRUE) + by)
     } else {
-      stop("Must supply 'nclass' or 'by' to set the breaks.")
+      cli::cli_abort("Must supply {.arg nclass} or {.arg by} to set the breaks.")
     }
   }
 
@@ -60,18 +66,18 @@ loghist.default <- function(x,
     hist_args
   ))
 
-  if(!log.p && length(geom) == 2){
+  if(!log.p && length(geom) == 3){
     geom <- "col"
   } else {
     geom <- match.arg(geom)
   }
 
   if(scale){
-    x_lab <- tex("x / \\langle x \\rangle^\\phi")
-    y_lab <- tex("x^\\Delta P(x)")
+    x_lab <- tex("$x / \\langle x \\rangle^\\phi$")
+    y_lab <- tex("$x^\\Delta P(x)$")
   } else {
-    x_lab <- tex("x")
-    y_lab <- tex("P(x)")
+    x_lab <- tex("$x$")
+    y_lab <- tex("$P(x)$")
   }
 
   g <- d %>%
@@ -95,14 +101,23 @@ loghist.default <- function(x,
     g <- g + ggplot2::geom_col(...)
   }
 
+  if(geom == "point"){
+    g <- g + ggplot2::geom_point(...)
+  }
+
   if(!is.null(distr_list)){
-    g <- do.call("draw_distr",
+    g <- do.call("distr_draw",
                  c(
                    list("g" = g,
                         "distr_list" = distr_list,
-                        "x" = unique(d$x)),
-                   draw_distr_args
+                        "x" = unique(d$x)
+                        ),
+                   distr_draw_args
                  ))
+  }
+
+  if(!isTRUE(show_legend)){
+    g <- g + ggplot2::theme(legend.position = "none")
   }
 
   return(g)
@@ -112,22 +127,24 @@ loghist.default <- function(x,
 loghist.list <- function(x,
                          nclass = 50,
                          by = NULL,
-                         log.p = FALSE,
+                         log.p = TRUE,
                          log.x = TRUE,
                          scale = FALSE,
                          delta = 1,
                          phi = 1,
-                         geom = c("line", "col"),
+                         geom = c("line", "col", "point"),
                          linewidth = 1,
                          distr_list = NULL,
-                         draw_distr_args = list(
+                         distr_draw_args = list(
                            linewidth = linewidth,
                            linetype = "dashed",
                            delta = delta,
                            phi = phi,
-                           scale = scale
+                           scale = scale,
+                           boot = FALSE
                          ),
                          hist_args = NULL,
+                         show_legend = TRUE,
                          ...){
 
   if(!missing(by)){
@@ -136,24 +153,31 @@ loghist.list <- function(x,
 
   if(!is.null(nclass)){
     if(!is.null(by) && missing(by)){
-      stop("Only one of 'nclass' or 'by' should be supplied and the other set to NULL.")
+      cli::cli_abort("Only one of {.arg nclass} or {.arg by} should be supplied and the other set to {.val NULL}")
     }
     breaks <- nclass
   } else {
     if(!is.null(by)){
+      x1 <- unlist(x, TRUE, FALSE)
+      if(log.x){
+        if(any(x1 == 0)){
+          cli::cli_warn("Dropped {sum(stats::na.omit(x1) == 0)} zero value{?s}.")
+        }
+      }
       if(scale){
-        x1 <- range(unlist(lapply(x, function(z){z / mean(z, na.rm = TRUE)^phi}), TRUE, FALSE), na.rm = TRUE)
-      } else {
-        x1 <- range(unlist(x, TRUE, FALSE), na.rm = TRUE)
+        x1 <- range(unlist(lapply(x, function(z){
+          z <- omit_zero(z)
+          z / mean(z, na.rm = TRUE)^phi
+          }), TRUE, FALSE), na.rm = TRUE)
       }
       if(log.x){
-        x1 <- log(x1)
+        x1 <- log(omit_zero(x1))
       }
 
       breaks <- seq_interval(x1, by = by, na.rm = TRUE)
-      breaks <- c(min(breaks) - by, breaks, max(breaks) + by)
+      breaks <- c(min(breaks, na.rm = TRUE) - by, breaks, max(breaks, na.rm = TRUE) + by)
     } else {
-      stop("Must supply 'nclass' or 'by' to set the breaks.")
+      cli::cli_abort("Must supply {.arg nclass} or {.arg by} to set the breaks.")
     }
   }
 
@@ -179,18 +203,18 @@ loghist.list <- function(x,
   }) %>%
     do.call("rbind", .)
 
-  if(!log.p && length(geom) == 2){
+  if(!log.p && length(geom) == 3){
     geom <- "col"
   } else {
     geom <- match.arg(geom)
   }
 
   if(scale){
-    x_lab <- tex("x / \\langle x \\rangle^\\phi")
-    y_lab <- tex("x^\\Delta P(x)")
+    x_lab <- tex("$x / \\langle x \\rangle^\\phi$")
+    y_lab <- tex("$x^\\Delta P(x)$")
   } else {
-    x_lab <- tex("x")
-    y_lab <- tex("P(x)")
+    x_lab <- tex("$x$")
+    y_lab <- tex("$P(x)$")
   }
 
   g <- d %>%
@@ -207,25 +231,33 @@ loghist.list <- function(x,
   }
 
   if(geom == "line"){
-    g <- g + ggplot2::geom_line(aes(color = group, group = group),
+    g <- g + ggplot2::geom_line(ggplot2::aes(color = group, group = group),
                                 linewidth = linewidth,
                                 ...)
   }
 
   if(geom == "col"){
-    g <- g + ggplot2::geom_col(aes(group = group, fill = group),
+    g <- g + ggplot2::geom_col(ggplot2::aes(group = group, fill = group),
                                position = "dodge",
                                ...)
   }
 
+  if(geom == "point"){
+    g <- g + ggplot2::geom_point(ggplot2::aes(color = group, group = group), ...)
+  }
+
   if(!is.null(distr_list)){
-    g <- do.call("draw_distr",
+    g <- do.call("distr_draw",
                  c(
                    list("g" = g,
                         "distr_list" = distr_list,
                         "x" = unique(d$x)),
-                   draw_distr_args
+                   distr_draw_args
                  ))
+  }
+
+  if(!isTRUE(show_legend)){
+    g <- g + ggplot2::theme(legend.position = "none")
   }
 
   return(g)
@@ -241,6 +273,7 @@ calc_hist <- function(x, breaks,
   x <- x[!is.na(x)]
 
   if(log.x){
+    x <- omit_zero(x)
     if(scale){
       mu <- mean(x)
       x <- x / mu^phi
@@ -291,9 +324,14 @@ calc_hist <- function(x, breaks,
   return(d)
 }
 
-draw_distr <- function(g, distr_list, x, linewidth = 1, linetype = "dashed", scale = FALSE, delta, phi, ...){
+distr_draw <- function(g, distr_list, x, linewidth = 1, linetype = "dashed", scale = FALSE,
+                       boot = FALSE,
+                       delta, phi, ...){
   if(is.distr(distr_list)){
     distr_list <- list(distr_list)
+  }
+  if(is.numeric(boot)){
+    distr_list <- rep(distr_list, boot)
   }
 
   n <- length(distr_list)
@@ -311,13 +349,11 @@ draw_distr <- function(g, distr_list, x, linewidth = 1, linetype = "dashed", sca
       x1 <- x
     }
 
-    den <- do.call(
-      paste0("d",dist_name),
-      c(
-        list(x1),
-        distr_list[[i]]$params
-      )
-    )
+    if(is.numeric(boot)){
+      den <- ddistr(x1, distr_list[[i]], boot = TRUE)
+    } else {
+      den <- ddistr(x1, distr_list[[i]], boot = FALSE)
+    }
 
     if(scale){
       den <- den * x1^delta
