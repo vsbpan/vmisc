@@ -102,4 +102,27 @@ marginal_effects <- function(model, terms, n = 300, ci = 0.95){
 }
 
 
+#' @title Find the size of device using windows x11
+#' @description Uses `x11()` to interactively get (with dragging) the desired window size. Only usable for windows devices.
+#' @param expr an expression to be evaluated
+#' @param units the units of the window dimensions
+#' @return NULL
+dev.isize <- function(expr, units = c("in", "cm", "px")){
+  units <- match.arg(units)
+  grDevices::x11()
 
+  if(ggplot2::is.ggplot(expr)){
+    eval(print(expr))
+  } else{
+    eval(expr)
+  }
+
+  cli::cli_text("Press {.kbd Esc} to exit.")
+  while(TRUE){
+    cdev <- grDevices::dev.size(units = "in")
+    cdev <- round(cdev, digits = 2)
+    Sys.sleep(1)
+    cat(sprintf("Width (%s): %s, Height (%s): %s               ", units, cdev[1], units, cdev[2]), "\r")
+  }
+  invisible(NULL)
+}

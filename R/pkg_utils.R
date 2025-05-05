@@ -119,10 +119,16 @@ detach.vmisc <- function(x){
   }
 }
 
-.reinstall.vmisc <- function(package_path = "C:/R_Projects/Package_Building/vmisc/vmisc_0.1.0.tar.gz", ...){
+.reinstall.vmisc <- function(
+    source = c("github", "source"),
+    package_path = "C:/R_Projects/Package_Building/vmisc/vmisc_0.1.0.tar.gz", ...){
   load.vmisc <- "vmisc" %in% (.packages())
   detach.vmisc()
-  utils::install.packages(package_path, repos = NULL, type = "source")
+  if(match.arg(source) == "github"){
+    devtools::install_github("vsbpan/vmisc", dependencies = TRUE, force = TRUE)
+  } else {
+    utils::install.packages(package_path, repos = NULL, type = "source")
+  }
   rstudioapi::restartSession()
   if (load.vmisc) {
     library(vmisc)
