@@ -86,7 +86,8 @@ prepare_newdata <- function(model, terms = NULL, n = 300){
         if(is.numeric(x)){
           x <- seq_interval(stats::na.omit(x), n[j])
         } else {
-          x <- as.vector(na.omit(unique(x)))
+          x <- unique(x)
+          x <- x[!is.na(x)]
         }
       } else {
         x <- v[[j]]
@@ -99,7 +100,8 @@ prepare_newdata <- function(model, terms = NULL, n = 300){
         if(names(d)[i] %in% rand_names){
           x <- "foooooooooooooooo"
         } else {
-          x <- as.vector(na.omit(unique(x)))
+          x <- unique(x)
+          x <- x[!is.na(x)]
         }
       }
       return(x)

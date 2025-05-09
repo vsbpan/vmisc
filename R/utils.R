@@ -288,7 +288,3 @@ abind <- function(...){
   return(combined_array)
 }
 
-
-na.omit2 <- function(x){
-  as.numeric(na.omit(x))
-}
