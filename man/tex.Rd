@@ -4,7 +4,7 @@
 \alias{tex}
 \title{Latex label}
 \usage{
-tex(x, italic = TRUE, ...)
+tex(x, italic = FALSE, ...)
 }
 \arguments{
 \item{x}{the latex command without the `$`.}

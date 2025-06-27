@@ -23,7 +23,7 @@ geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels
 #' @param italic if TRUE italicize the output
 #' @param ... additional arguments passed to `latex2exp::Tex()`
 #' @return a plotmath expression
-tex <- function(x, italic = TRUE, ...){
+tex <- function(x, italic = FALSE, ...){
   latex2exp::TeX(sprintf("%s", x), italic = italic, ...)
 }
 
