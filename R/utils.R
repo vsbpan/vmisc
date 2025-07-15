@@ -28,17 +28,6 @@ reverse_names <- function(x){
   return(nms)
 }
 
-#' @title Same thing as `setNames()`
-#' @description Same thing as `setNames()`
-#' @param x an object
-#' @param name the name
-#' @return a named vector
-append_name <- function(x, name){
-  names(x) <- name
-  x
-}
-
-
 #' @title Length of unique elements
 #' @description Find the length of unique elements
 #' @param x a vector

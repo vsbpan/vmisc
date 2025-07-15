@@ -79,7 +79,7 @@ AICc <- function (object, ..., k = 2)
       }
       return(data.frame(model = deparse(x), AICc = aicc,
                         df = df))
-    }))
+    }), envir = parent.frame())
     out$dAICc <- out$AICc - min(out$AICc)
     out <- out[order(out$AICc), ]
     return(out)

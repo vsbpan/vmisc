@@ -4,8 +4,9 @@
 #' @param method the method of fitting ("MA": major axis, "OLS": ordinary least squares, "SMA": standardized major axis, "RMA": range major axis)
 #' @param rr.digits,coef.digits the number of digits to display
 #' @param labels a vector of what to label. ("eq", "R2", "P", "n")
+#' @param ... additional arguments
 #' @return a ggplot object
-geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels = c("eq", "R2")){
+geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels = c("eq", "R2"), ...){
   list(
     ggpmisc::stat_ma_line(method = method),
     ggpmisc::stat_ma_eq(eq.with.lhs = "italic(hat(y))~`=`~",
@@ -13,7 +14,8 @@ geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels
                         rr.digits = rr.digits,
                         coef.digits = coef.digits,
                         coef.keep.zeros = TRUE,
-                        method = method)
+                        method = method,
+                        ...)
   )
 }
 
@@ -23,8 +25,8 @@ geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels
 #' @param italic if TRUE italicize the output
 #' @param ... additional arguments passed to `latex2exp::Tex()`
 #' @return a plotmath expression
-tex <- function(x, italic = TRUE, ...){
-  latex2exp::TeX(sprintf("%s", x), italic = italic, ...)
+tex <- function(x, italic = FALSE, ...){
+  latex2exp::TeX(x, italic = italic, ...)
 }
 
 
@@ -71,6 +73,12 @@ marginal_effects <- function(model, terms, n = 300, ci = 0.95, ...){
     names(new_data)[names(new_data) == "cat"] <- insight::find_response(model)
 
   } else {
+    if(!is.null(insight::find_random(model)$random)){
+      cli::cli_alert("Confidence intervals and standard errors may include random effect(s). Check `predict()` documentation to see how to turn it off.")
+      if(inherits(model, "glmmTMB")){
+        cli::cli_inform("For {.cls glmmTMB} objects, the setting is {.arg re.form = NA}.")
+      }
+    }
     pred <- suppressWarnings(predict(model, newdata = new_data, se = TRUE, ...))
 
     new_data <- cbind(new_data,
@@ -89,7 +97,8 @@ marginal_effects <- function(model, terms, n = 300, ci = 0.95, ...){
           NA
         }
       }) %>%
-      dplyr::mutate(se = sqrt(se))
+      dplyr::mutate(se = sqrt(se)) %>%
+      dplyr::ungroup()
 
     resp_inv <- insight::get_transformation(model)$inverse
 
