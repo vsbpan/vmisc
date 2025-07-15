@@ -9,7 +9,8 @@ geom_lineeq(
   method = "MA",
   rr.digits = 3,
   coef.digits = 3,
-  labels = c("eq", "R2")
+  labels = c("eq", "R2"),
+  ...
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ geom_lineeq(
 \item{rr.digits, coef.digits}{the number of digits to display}
 
 \item{labels}{a vector of what to label. ("eq", "R2", "P", "n")}
+
+\item{...}{additional arguments}
 }
 \value{
 a ggplot object
