@@ -93,9 +93,11 @@ pb_par_lapply <- function(x, FUN,
       },
       .packages = pkg
     ) %dopar% {
-      load_fake_pkg(path = fake_pkg_path,
+      if(length(fake_pkg_path) > 0){
+        load_fake_pkg(path = fake_pkg_path,
                       export_all = TRUE,
                       quiet = TRUE)
+      }
       list(FUN(i, ...))
     }, error = function(e){
 
