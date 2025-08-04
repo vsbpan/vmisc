@@ -62,7 +62,8 @@ loghist.default <- function(x,
       "log.p" = log.p,
       "scale" = scale,
       "delta" = delta,
-      "phi" = phi
+      "phi" = phi,
+      "discrete" = discrete
     ),
     hist_args
   ))
@@ -198,7 +199,8 @@ loghist.list <- function(x,
         "log.p" = log.p,
         "scale" = scale,
         "delta" = delta,
-        "phi" = phi
+        "phi" = phi,
+        "discrete" = discrete
       ),
       hist_args
     )) %>%
@@ -273,6 +275,7 @@ calc_hist <- function(x, breaks,
                       scale,
                       delta,
                       phi,
+                      discrete,
                       ...){
   x <- x[!is.na(x)]
 
@@ -282,6 +285,9 @@ calc_hist <- function(x, breaks,
       mu <- mean(x)
       x <- x / mu^phi
       p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
+      if(isTRUE(discrete)){
+        p$density <- p$counts / sum(p$counts) * exp(p$mids)^(delta-1)
+      }
       d <- data.frame(
         "x" = exp(p$mids),
         "p" = p$density * exp(p$mids)^(delta-1)
@@ -293,6 +299,9 @@ calc_hist <- function(x, breaks,
       )
     } else {
       p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
+      if(isTRUE(discrete)){
+        p$density <- p$counts / sum(p$counts)  * exp(p$mids)
+      }
       d <- data.frame(
         "x" = exp(p$mids),
         "p" = p$density / exp(p$mids)
@@ -304,6 +313,9 @@ calc_hist <- function(x, breaks,
       mu <- mean(x)
       x <- x / mu^phi
       p <- hist(x, plot = FALSE, breaks = breaks, ...)
+      if(isTRUE(discrete)){
+        p$density <- p$counts / sum(p$counts)
+      }
       d <- data.frame(
         "x" = p$mids,
         "p" = p$density * p$mids^delta
@@ -315,6 +327,9 @@ calc_hist <- function(x, breaks,
       )
     } else {
       p <- hist(x, plot = FALSE, breaks = breaks, ...)
+      if(isTRUE(discrete)){
+        p$density <- p$counts / sum(p$counts)
+      }
       d <- data.frame(
         "x" = p$mids,
         "p" = p$density
