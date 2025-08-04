@@ -67,6 +67,7 @@ loghist <- function(x,
                     ),
                     hist_args = NULL,
                     show_legend = TRUE,
+                    discrete = FALSE,
                     ...){
   UseMethod("loghist")
 }

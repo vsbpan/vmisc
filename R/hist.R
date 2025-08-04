@@ -20,6 +20,7 @@ loghist.default <- function(x,
                     ),
                     hist_args = NULL,
                     show_legend = TRUE,
+                    discrete = FALSE,
                     ...){
 
   if(!missing(by)){
@@ -110,7 +111,8 @@ loghist.default <- function(x,
                  c(
                    list("g" = g,
                         "distr_list" = distr_list,
-                        "x" = unique(d$x)
+                        "x" = unique(d$x),
+                        "discrete" = discrete
                         ),
                    distr_draw_args
                  ))
@@ -145,6 +147,7 @@ loghist.list <- function(x,
                          ),
                          hist_args = NULL,
                          show_legend = TRUE,
+                         discrete = FALSE,
                          ...){
 
   if(!missing(by)){
@@ -251,7 +254,8 @@ loghist.list <- function(x,
                  c(
                    list("g" = g,
                         "distr_list" = distr_list,
-                        "x" = unique(d$x)),
+                        "x" = unique(d$x),
+                        "discrete" = discrete),
                    distr_draw_args
                  ))
   }
@@ -324,7 +328,8 @@ calc_hist <- function(x, breaks,
   return(d)
 }
 
-distr_draw <- function(g, distr_list, x, linewidth = 1, linetype = "dashed", scale = FALSE,
+distr_draw <- function(g, distr_list, x, discrete = FALSE,
+                       linewidth = 1, linetype = "dashed", scale = FALSE,
                        boot = FALSE,
                        delta, phi, ...){
   if(is.distr(distr_list)){
@@ -338,7 +343,6 @@ distr_draw <- function(g, distr_list, x, linewidth = 1, linetype = "dashed", sca
   den_data <- vector(mode = "list", length = n)
 
 
-
   for (i in seq_len(n)){
     dist_name <- distr_list[[i]]$name
 
@@ -347,6 +351,9 @@ distr_draw <- function(g, distr_list, x, linewidth = 1, linetype = "dashed", sca
       x1 <- x * mu^phi
     } else {
       x1 <- x
+    }
+    if(isTRUE(discrete)){
+      x1 <- round(x1)
     }
 
     if(is.numeric(boot)){
