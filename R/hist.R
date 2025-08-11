@@ -21,6 +21,8 @@ loghist.default <- function(x,
                     hist_args = NULL,
                     show_legend = TRUE,
                     discrete = FALSE,
+                    discrete_grid = seq_interval(x, by = 1),
+                    continuous_grid = NULL,
                     ...){
 
   if(!missing(by)){
@@ -54,6 +56,10 @@ loghist.default <- function(x,
     }
   }
 
+  if(!is.null(continuous_grid) && !isTRUE(discrete)){
+    cli::cli_warn("Ignored {.arg continuous_grid} when {.arg discrete = TRUE}")
+  }
+
   d <- do.call("calc_hist", c(
     list(
       "x" = x,
@@ -63,7 +69,9 @@ loghist.default <- function(x,
       "scale" = scale,
       "delta" = delta,
       "phi" = phi,
-      "discrete" = discrete
+      "discrete" = discrete,
+      "discrete_grid" = discrete_grid,
+      "continuous_grid" = continuous_grid
     ),
     hist_args
   ))
@@ -113,7 +121,10 @@ loghist.default <- function(x,
                    list("g" = g,
                         "distr_list" = distr_list,
                         "x" = unique(d$x),
-                        "discrete" = discrete
+                        "discrete" = discrete,
+                        "discrete_grid" = discrete_grid,
+                        "continuous_grid" = continuous_grid,
+                        "log.x" = log.x
                         ),
                    distr_draw_args
                  ))
@@ -149,6 +160,8 @@ loghist.list <- function(x,
                          hist_args = NULL,
                          show_legend = TRUE,
                          discrete = FALSE,
+                         discrete_grid = seq_interval(unlist(x, TRUE, FALSE), by = 1),
+                         continuous_grid = NULL,
                          ...){
 
   if(!missing(by)){
@@ -185,6 +198,10 @@ loghist.list <- function(x,
     }
   }
 
+  if(!is.null(continuous_grid) && !isTRUE(discrete)){
+    cli::cli_warn("Ignored {.arg continuous_grid} when {.arg discrete = TRUE}")
+  }
+
   nms <- names(x)
   if(is.null(nms)){
     nms <- seq_along(x)
@@ -200,7 +217,9 @@ loghist.list <- function(x,
         "scale" = scale,
         "delta" = delta,
         "phi" = phi,
-        "discrete" = discrete
+        "discrete" = discrete,
+        "discrete_grid" = discrete_grid,
+        "continuous_grid" = continuous_grid
       ),
       hist_args
     )) %>%
@@ -257,7 +276,9 @@ loghist.list <- function(x,
                    list("g" = g,
                         "distr_list" = distr_list,
                         "x" = unique(d$x),
-                        "discrete" = discrete),
+                        "discrete" = discrete,
+                        "discrete_grid" = discrete_grid,
+                        "log.x" = log.x),
                    distr_draw_args
                  ))
   }
@@ -276,6 +297,8 @@ calc_hist <- function(x, breaks,
                       delta,
                       phi,
                       discrete,
+                      discrete_grid,
+                      continuous_grid,
                       ...){
   x <- x[!is.na(x)]
 
@@ -346,7 +369,11 @@ calc_hist <- function(x, breaks,
 distr_draw <- function(g, distr_list, x, discrete = FALSE,
                        linewidth = 1, linetype = "dashed", scale = FALSE,
                        boot = FALSE,
-                       delta, phi, ...){
+                       delta, phi,
+                       discrete_grid = NULL,
+                       continuous_grid = NULL,
+                       log.x = FALSE,
+                       ...){
   if(is.distr(distr_list)){
     distr_list <- list(distr_list)
   }
@@ -368,7 +395,22 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
       x1 <- x
     }
     if(isTRUE(discrete)){
-      x1 <- round(x1)
+      if(is.null(discrete_grid)){
+        cli::cli_abort("Must supply {.arg discrete_grid} as a vector.")
+      }
+      if(!is.null(continuous_grid)){
+        discrete_grid <- discrete_grid[!is.between(discrete_grid, range(continuous_grid), inclusive = FALSE)]
+        if(log.x){
+          if(any(continuous_grid == 0)){
+            continuous_grid <- continuous_grid[continuous_grid != 0]
+            continuous_grid <- c(.Machine$double.eps, continuous_grid)
+          }
+          discrete_grid <- exp(seq_interval(log(continuous_grid)))
+        } else {
+          discrete_grid <- seq_interval(continuous_grid)
+        }
+      }
+      x1 <- (nearest_bin(x1, discrete_grid))
     }
 
     if(is.numeric(boot)){
@@ -381,6 +423,13 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
       den <- den * x1^delta
     }
 
+    if(!is.null(continuous_grid) && isTRUE(discrete)){
+      is_cont <- is.between(x = x1, range(continuous_grid), inclusive = FALSE)
+      grid <- diff(x[is_cont])
+      grid <- c(grid, tail(grid, 1))
+      den[is_cont] <- den[is_cont] * grid
+    }
+
     den[!is.finite(den)] <- NA_real_
 
 
@@ -389,7 +438,8 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
       "p" = den,
       "dist" = dist_name,
       "distID" = paste0(dist_name,"-",i)
-    )
+    ) %>%
+      unique()
   }
 
   g <- g +
