@@ -25,6 +25,8 @@ loghist.default <- function(x,
                     continuous_grid = NULL,
                     ...){
 
+  distr_draw_args <- append_default_args(distr_draw_args)
+
   if(!missing(by)){
     nclass <- NULL
   }
@@ -124,14 +126,24 @@ loghist.default <- function(x,
                         "discrete" = discrete,
                         "discrete_grid" = discrete_grid,
                         "continuous_grid" = continuous_grid,
-                        "log.x" = log.x
+                        "log.x" = log.x,
+                        ...
                         ),
                    distr_draw_args
                  ))
   }
 
-  if(!isTRUE(show_legend)){
+  if(!isTRUE(show_legend) && loghist){
     g <- g + ggplot2::theme(legend.position = "none")
+  } else if(is.numeric(show_legend)){
+    legend_breaks <- lapply(show_legend, function(i){
+      g$layers[[i]]$data$group
+    }) %>%
+      do.call("c", .) %>%
+      unique()
+
+    g <- g + ggplot2::scale_color_discrete(breaks = legend_breaks)
+
   }
 
   return(g)
@@ -163,6 +175,8 @@ loghist.list <- function(x,
                          discrete_grid = seq_interval(unlist(x, TRUE, FALSE), by = 1),
                          continuous_grid = NULL,
                          ...){
+
+  distr_draw_args <- append_default_args(distr_draw_args)
 
   if(!missing(by)){
     nclass <- NULL
@@ -279,13 +293,27 @@ loghist.list <- function(x,
                         "discrete" = discrete,
                         "discrete_grid" = discrete_grid,
                         "continuous_grid" = continuous_grid,
-                        "log.x" = log.x),
+                        "log.x" = log.x,
+                        ...),
                    distr_draw_args
                  ))
   }
 
-  if(!isTRUE(show_legend)){
+  if(!isTRUE(show_legend) && !is.numeric(show_legend)){
     g <- g + ggplot2::theme(legend.position = "none")
+  } else if(is.numeric(show_legend)){
+    legend_breaks <- lapply(show_legend, function(i){
+      if(inherits(g$layers[[i]]$data,"waiver")){
+        as.character(g$data$group)
+      } else {
+        as.character(g$layers[[i]]$data$group)
+      }
+    }) %>%
+      do.call("c", .) %>%
+      unique()
+
+    g <- g + ggplot2::scale_color_discrete(breaks = legend_breaks)
+
   }
 
   return(g)
@@ -385,6 +413,58 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
   n <- length(distr_list)
   den_data <- vector(mode = "list", length = n)
 
+  if(!scale){
+    x1 <- x
+  }
+
+  if(isTRUE(discrete)){
+    if(is.null(discrete_grid)){
+      cli::cli_abort("Must supply {.arg discrete_grid} as a vector.")
+    }
+    if(!is.null(continuous_grid)){
+      discrete_grid <- discrete_grid[!is.between(discrete_grid, range(continuous_grid), inclusive = FALSE)]
+      if(log.x){
+        m1 <- min(x)
+        m2 <- max(x)
+        if(any(continuous_grid < m1 | continuous_grid > m2)){
+          continuous_grid2 <- continuous_grid[! (continuous_grid < m1 | continuous_grid > m2)]
+          continuous_grid2 <- c(m1, continuous_grid2, m2)
+        } else {
+          continuous_grid2 <- continuous_grid
+        }
+        discrete_grid <- c(discrete_grid,exp(seq_interval(log(continuous_grid2))))
+      } else {
+        discrete_grid <- c(discrete_grid, seq_interval(continuous_grid))
+      }
+    }
+
+    if(scale){
+      cli::cli_warn("Currently does not support {.arg scale = TRUE} when {.arg discrete = TRUE}. No garuntee results make sense.")
+    }
+    x1 <- sort(discrete_grid)
+
+    if(!is.null(continuous_grid)){
+      is_cont <- is.between(x = x1, range(continuous_grid), inclusive = FALSE)
+      x <- sort(x)
+      is_cont2 <- is.between(x = x, range(continuous_grid), inclusive = FALSE)
+      grid <- diff(x[is_cont2])
+      if(log.x){
+        throw <- 1:floor(length(grid) / 4)
+        f <- lm(
+          y ~ (x),
+          data = data.frame(
+            "y" = log(grid)[-throw],
+            "x" = ((log(x[is_cont2])[-1] + log(x[is_cont2])[-sum(is_cont2)]) / 2)[-throw]
+          ),
+          singular.ok = TRUE
+        )
+        grid <- exp(predict(f, newdata = data.frame("x" = log(x1[is_cont]))))
+      } else {
+        grid <- median(grid)
+      }
+    }
+  }
+
 
   for (i in seq_len(n)){
     dist_name <- distr_list[[i]]$name
@@ -392,34 +472,6 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
     if(scale){
       mu <- distr_mu(distr_list[[i]])
       x1 <- x * mu^phi
-    } else {
-      x1 <- x
-    }
-    if(isTRUE(discrete)){
-      if(is.null(discrete_grid)){
-        cli::cli_abort("Must supply {.arg discrete_grid} as a vector.")
-      }
-      if(!is.null(continuous_grid)){
-        discrete_grid <- discrete_grid[!is.between(discrete_grid, range(continuous_grid), inclusive = FALSE)]
-        if(log.x){
-          m1 <- min(x)
-          m2 <- max(x)
-          if(any(continuous_grid < m1 | continuous_grid > m2)){
-            continuous_grid2 <- continuous_grid[! (continuous_grid < m1 | continuous_grid > m2)]
-            continuous_grid2 <- c(m1, continuous_grid2, m2)
-          } else {
-            continuous_grid2 <- continuous_grid
-          }
-          discrete_grid <- c(discrete_grid,exp(seq_interval(log(continuous_grid2))))
-        } else {
-          discrete_grid <- c(discrete_grid, seq_interval(continuous_grid))
-        }
-      }
-
-      if(scale){
-        cli::cli_warn("Currently does not support {.arg scale = TRUE} when {.arg discrete = TRUE}. No garuntee results make sense.")
-      }
-      x1 <- sort(discrete_grid)
     }
 
     if(is.numeric(boot)){
@@ -433,24 +485,6 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
     }
 
     if(!is.null(continuous_grid) && isTRUE(discrete)){
-      is_cont <- is.between(x = x1, range(continuous_grid), inclusive = FALSE)
-      x <- sort(x)
-      is_cont2 <- is.between(x = x, range(continuous_grid), inclusive = FALSE)
-      grid <- diff(x[is_cont2])
-      if(log.x){
-        n <- floor(length(grid) / 4)
-        f <- lm(
-          y ~ (x),
-          data = data.frame(
-            "y" = log(grid)[-(1:n)],
-            "x" = ((log(x[is_cont2])[-1] + log(x[is_cont2])[-sum(is_cont2)]) / 2)[-(1:n)]
-          )
-        )
-        grid <- exp(predict(f, newdata = data.frame("x" = log(x1[is_cont]))))
-      } else {
-        grid <- median(grid)
-      }
-
       den[is_cont] <- den[is_cont] * grid
     }
 
@@ -463,7 +497,7 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
     den_data[[i]] <- data.frame(
       "x" = x,
       "p" = den,
-      "dist" = dist_name,
+      "group" = dist_name,
       "distID" = paste0(dist_name,"-",i)
     ) %>%
       unique()
@@ -472,7 +506,7 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
   g <- g +
     ggplot2::geom_line(
       data = do.call("rbind", den_data),
-      ggplot2::aes(color = dist, x = x, y = p, group = distID),
+      ggplot2::aes(color = group, x = x, y = p, group = distID),
       linewidth = linewidth,
       linetype = linetype,
       ...

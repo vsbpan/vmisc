@@ -277,3 +277,10 @@ abind <- function(...){
   return(combined_array)
 }
 
+append_default_args <- function(x){
+  sysP <- sys.parent()
+  choices <- eval(formals(sys.function(sysP))$distr_draw_args, envir = sys.frame(sysP))
+  choices <- choices[!names(choices) %in% names(x)]
+  c(choices, x)
+}
+

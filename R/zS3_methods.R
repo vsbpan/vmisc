@@ -57,7 +57,7 @@ loghist <- function(x,
                     geom = c("line", "col", "point"),
                     linewidth = 1,
                     distr_list = NULL,
-                    draw_distr_args = list(
+                    distr_draw_args = list(
                       linewidth = linewidth,
                       linetype = "dashed",
                       delta = delta,
