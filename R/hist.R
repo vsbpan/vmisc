@@ -401,16 +401,22 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
       if(!is.null(continuous_grid)){
         discrete_grid <- discrete_grid[!is.between(discrete_grid, range(continuous_grid), inclusive = FALSE)]
         if(log.x){
-          if(any(continuous_grid == 0)){
-            continuous_grid <- continuous_grid[continuous_grid != 0]
-            continuous_grid <- c(.Machine$double.eps, continuous_grid)
+          m1 <- min(x)
+          m2 <- max(x)
+          if(any(continuous_grid < m1 | continuous_grid > m2)){
+            continuous_grid <- continuous_grid[! (continuous_grid < m1 | continuous_grid > m2)]
+            continuous_grid <- c(m1, continuous_grid, m2)
           }
-          discrete_grid <- exp(seq_interval(log(continuous_grid)))
+          discrete_grid <- c(discrete_grid,exp(seq_interval(log(continuous_grid))))
         } else {
-          discrete_grid <- seq_interval(continuous_grid)
+          discrete_grid <- c(discrete_grid, seq_interval(continuous_grid))
         }
       }
-      x1 <- (nearest_bin(x1, discrete_grid))
+
+      if(scale){
+        cli::cli_warn("Currently does not support {.arg scale = TRUE} when {.arg discrete = TRUE}. No garuntee results make sense.")
+      }
+      x1 <- sort(discrete_grid)
     }
 
     if(is.numeric(boot)){
@@ -425,13 +431,26 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
 
     if(!is.null(continuous_grid) && isTRUE(discrete)){
       is_cont <- is.between(x = x1, range(continuous_grid), inclusive = FALSE)
-      grid <- diff(x[is_cont])
-      grid <- c(grid, tail(grid, 1))
+      x <- sort(x)
+      is_cont2 <- is.between(x = x, range(continuous_grid), inclusive = FALSE)
+      grid <- diff(x[is_cont2])
+      if(log.x){
+        f <- approxfun(exp(
+          (log(x[is_cont2])[-1] + log(x[is_cont2])[-sum(is_cont2)]) / 2
+        ), y = grid, method = "linear")
+        grid <- f(x1)
+      } else {
+        grid <- median(grid)
+      }
+
       den[is_cont] <- den[is_cont] * grid
     }
 
     den[!is.finite(den)] <- NA_real_
 
+    if(isTRUE(discrete)){
+      x <- x1
+    }
 
     den_data[[i]] <- data.frame(
       "x" = x,
