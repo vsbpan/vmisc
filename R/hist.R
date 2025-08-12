@@ -404,10 +404,12 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
           m1 <- min(x)
           m2 <- max(x)
           if(any(continuous_grid < m1 | continuous_grid > m2)){
-            continuous_grid <- continuous_grid[! (continuous_grid < m1 | continuous_grid > m2)]
-            continuous_grid <- c(m1, continuous_grid, m2)
+            continuous_grid2 <- continuous_grid[! (continuous_grid < m1 | continuous_grid > m2)]
+            continuous_grid2 <- c(m1, continuous_grid2, m2)
+          } else {
+            continuous_grid2 <- continuous_grid
           }
-          discrete_grid <- c(discrete_grid,exp(seq_interval(log(continuous_grid))))
+          discrete_grid <- c(discrete_grid,exp(seq_interval(log(continuous_grid2))))
         } else {
           discrete_grid <- c(discrete_grid, seq_interval(continuous_grid))
         }
@@ -435,14 +437,15 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
       is_cont2 <- is.between(x = x, range(continuous_grid), inclusive = FALSE)
       grid <- diff(x[is_cont2])
       if(log.x){
+        n <- floor(length(grid) / 4)
         f <- lm(
-          y ~ exp(x),
+          y ~ (x),
           data = data.frame(
-            "y" = grid,
-            "x" = (log(x[is_cont2])[-1] + log(x[is_cont2])[-sum(is_cont2)]) / 2
+            "y" = log(grid)[-(1:n)],
+            "x" = ((log(x[is_cont2])[-1] + log(x[is_cont2])[-sum(is_cont2)]) / 2)[-(1:n)]
           )
         )
-        grid <- predict(f, newdata = data.frame("x" = log(x1[is_cont])))
+        grid <- exp(predict(f, newdata = data.frame("x" = log(x1[is_cont]))))
       } else {
         grid <- median(grid)
       }
