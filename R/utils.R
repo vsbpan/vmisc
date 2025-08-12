@@ -284,3 +284,53 @@ append_default_args <- function(x){
   c(choices, x)
 }
 
+
+find_debug <- function(package = NULL) {
+  envs <- search()
+  lnsps <- loadedNamespaces()
+  package <- c(package, lnsps)
+
+  package <- package[!paste0("package:",package) %in% envs]
+
+  debug_vars <- sapply(envs, function(each_env) {
+    funs <- names(Filter(is.function, sapply(ls(each_env), get, each_env)))
+    debug_funs <- Filter(isdebugged, funs)
+    debug_funs
+  })
+  debug_vars2 <- sapply(package, function(each_env) {
+    env <- getNamespace(each_env)
+    funs <- Filter(is.function, sapply(ls(env), function(x, env){
+      get0(x, envir = env)
+    }, env))
+    debug_funs <- Filter(isdebugged, funs)
+    debug_funs <- names(debug_funs)
+    debug_funs <- ifelse(grepl("^[^a-zA-Z]", debug_funs), sprintf("`%s`", debug_funs), debug_funs)
+    if(length(debug_funs) == 0){
+      return(NULL)
+    }
+    paste0(each_env, ":::", debug_funs)
+  })
+  return(c(as.vector(unlist(debug_vars)), unlist(debug_vars2, use.names = FALSE)))
+}
+
+
+# Removes the debug flag from all the functions returned by `find_debug()`
+undebug_all <- function(verbose = TRUE) {
+  toUnDebug <- find_debug()
+  if (length(toUnDebug) == 0) {
+    if (verbose) cli::cli_alert_warning('No functions to `undebug`.')
+    return(invisible())
+  } else {
+    for (each_fn in toUnDebug) {
+      each_fn <- base::strsplit(each_fn, ":::")[[1]]
+      if(length(each_fn) == 2){
+        undebug(get(each_fn[2], envir = getNamespace(each_fn[1])))
+      } else {
+        undebug(each_fn)
+      }
+    }
+    if (verbose) cli::cli_alert_success('Undebugged {.fn {toUnDebug}}')
+    return(invisible())
+  }
+}
+

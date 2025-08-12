@@ -60,10 +60,12 @@ loghist <- function(x,
                     distr_draw_args = list(
                       linewidth = linewidth,
                       linetype = "dashed",
+                      alpha = 1,
                       delta = delta,
                       phi = phi,
                       scale = scale,
-                      boot = FALSE
+                      boot = FALSE,
+                      simulate = FALSE
                     ),
                     hist_args = NULL,
                     show_legend = TRUE,
