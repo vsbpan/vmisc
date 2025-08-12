@@ -118,10 +118,12 @@ qdistr <- function(p, distr, boot = FALSE, ...){
 distr_boot <- function(distr){
   assert_distr(distr)
   if(!is.null(distr$vcv)){
+    nms <- names(distr$param)
     distr$param <- as.list(
       mvnfast::rmvn(1, mu = do.call("c", distr$param),
                     sigma = distr$vcv, kpnames = TRUE)
     )
+    names(distr$param) <- nms # Somtimes mvnfast::rmvn() fails to pass the names
   } else {
     cli::cli_abort("Sorry, no variance-covariance matrix to perform bootstrapping.")
   }
