@@ -278,6 +278,7 @@ loghist.list <- function(x,
                         "x" = unique(d$x),
                         "discrete" = discrete,
                         "discrete_grid" = discrete_grid,
+                        "continuous_grid" = continuous_grid,
                         "log.x" = log.x),
                    distr_draw_args
                  ))
