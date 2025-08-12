@@ -405,9 +405,11 @@ calc_hist <- function(x, breaks,
   return(d)
 }
 
-distr_draw <- function(g, distr_list, x, discrete = FALSE,
-                       linewidth = 1, linetype = "dashed",
-                       alpha = 1,
+distr_draw <- function(g, distr_list, x,
+                       discrete = FALSE,
+                       draw_linewidth = 1,
+                       draw_linetype = "dashed",
+                       draw_alpha = 1,
                        scale = FALSE,
                        boot = FALSE,
                        delta, phi,
