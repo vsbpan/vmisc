@@ -201,7 +201,7 @@ plot_moments <- function(data_list,
                          center = FALSE,
                          rr.digits = 3,
                          coef.digits = 3,
-                         method = "MA"){
+                         method = "SMA"){
   if(is.null(x)){
     if(is.character(FUN) && FUN == "mean"){
       x_lab <-  tex("$\\langle x \\rangle$")

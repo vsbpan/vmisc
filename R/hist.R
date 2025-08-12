@@ -435,10 +435,14 @@ distr_draw <- function(g, distr_list, x, discrete = FALSE,
       is_cont2 <- is.between(x = x, range(continuous_grid), inclusive = FALSE)
       grid <- diff(x[is_cont2])
       if(log.x){
-        f <- approxfun(exp(
-          (log(x[is_cont2])[-1] + log(x[is_cont2])[-sum(is_cont2)]) / 2
-        ), y = grid, method = "linear")
-        grid <- f(x1)
+        f <- lm(
+          y ~ exp(x),
+          data = data.frame(
+            "y" = grid,
+            "x" = (log(x[is_cont2])[-1] + log(x[is_cont2])[-sum(is_cont2)]) / 2
+          )
+        )
+        grid <- predict(f, newdata = data.frame("x" = log(x1[is_cont])))
       } else {
         grid <- median(grid)
       }

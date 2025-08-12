@@ -13,7 +13,7 @@ plot_moments(
   center = FALSE,
   rr.digits = 3,
   coef.digits = 3,
-  method = "MA"
+  method = "SMA"
 )
 }
 \arguments{
