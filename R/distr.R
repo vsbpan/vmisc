@@ -38,7 +38,10 @@ distr_fun <- function(x){
 
 
 distr_fit <- function(x, name, as_distr = TRUE, ...){
-  res <- fitdistrplus::fitdist(x, name, ...)
+  if(!is.numeric(x)){
+    cli::cli_abort("{.arg x} must be a numeric vector.")
+  }
+  res <- fitdistrplus::fitdist(as.vector(x, mode = "numeric"), name, ...)
   if(as_distr){
     if(!is.null(res$fix.arg)){
       res$estimate <- c(res$estimate, res$fix.arg)

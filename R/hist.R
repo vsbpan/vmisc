@@ -86,18 +86,8 @@ loghist.default <- function(x,
     geom <- match.arg(geom)
   }
 
-  if(scale){
-    x_lab <- tex("$x / \\langle x \\rangle^\\phi$")
-    y_lab <- tex("$x^\\Delta P(x)$")
-  } else {
-    x_lab <- tex("$x$")
-    y_lab <- tex("$P(x)$")
-  }
-
   g <- d %>%
-    ggplot2::ggplot(ggplot2::aes(x = x, y = p)) +
-    ggplot2::theme_bw(base_size = 15) +
-    ggplot2::labs(x = x_lab, y = y_lab)
+    ggplot2::ggplot(ggplot2::aes(x = x, y = p))
 
   if(log.x){
     g <- g + ggplot2::scale_x_continuous(trans = "log10", labels = fancy_scientificb)
@@ -119,38 +109,20 @@ loghist.default <- function(x,
     g <- g + ggplot2::geom_point(...)
   }
 
-  if(!is.null(distr_list)){
-    g <- do.call("distr_draw",
-                 c(
-                   list("g" = g,
-                        "distr_list" = distr_list,
-                        "x" = unique(d$x),
-                        "discrete" = discrete,
-                        "discrete_grid" = discrete_grid,
-                        "continuous_grid" = continuous_grid,
-                        "log.x" = log.x,
-                        "log.p" = log.p,
-                        "breaks" = breaks,
-                        "hist_args" = hist_args,
-                        ...
-                        ),
-                   distr_draw_args
-                 ))
-  }
-
-  if(!isTRUE(show_legend) && loghist){
-    g <- g + ggplot2::theme(legend.position = "none")
-  } else if(is.numeric(show_legend)){
-    legend_breaks <- lapply(show_legend, function(i){
-      g$layers[[i]]$data$group
-    }) %>%
-      do.call("c", .) %>%
-      unique()
-
-    g <- g + ggplot2::scale_color_discrete(breaks = legend_breaks)
-
-  }
-
+  g <- hist_make_internal(g = g,
+                          hist_df = d,
+                          log.p = log.p,
+                          log.x = log.x,
+                          scale = scale,
+                          show_legend = show_legend,
+                          discrete = discrete,
+                          distr_list = distr_list,
+                          discrete_grid = discrete_grid,
+                          continuous_grid = continuous_grid,
+                          breaks = breaks,
+                          hist_args = hist_args,
+                          distr_draw_args = distr_draw_args,
+                          ...)
   return(g)
 }
 
@@ -254,26 +226,9 @@ loghist.list <- function(x,
     geom <- match.arg(geom)
   }
 
-  if(scale){
-    x_lab <- tex("$x / \\langle x \\rangle^\\phi$")
-    y_lab <- tex("$x^\\Delta P(x)$")
-  } else {
-    x_lab <- tex("$x$")
-    y_lab <- tex("$P(x)$")
-  }
 
   g <- d %>%
-    ggplot2::ggplot(ggplot2::aes(x = x, y = p)) +
-    ggplot2::theme_bw(base_size = 15) +
-    ggplot2::labs(x = x_lab, y = y_lab)
-
-  if(log.x){
-    g <- g + ggplot2::scale_x_continuous(trans = "log10", labels = fancy_scientificb)
-  }
-
-  if(log.p){
-    g <- g + ggplot2::scale_y_continuous(trans = "log10", labels = fancy_scientificb)
-  }
+    ggplot2::ggplot(ggplot2::aes(x = x, y = p))
 
   if(geom == "line"){
     g <- g + ggplot2::geom_line(ggplot2::aes(color = group, group = group),
@@ -288,43 +243,24 @@ loghist.list <- function(x,
   }
 
   if(geom == "point"){
-    g <- g + ggplot2::geom_point(ggplot2::aes(color = group, group = group), ...)
+    g <- g + ggplot2::geom_point(ggplot2::aes(color = group, group = group),
+                                 ...)
   }
 
-  if(!is.null(distr_list)){
-    g <- do.call("distr_draw",
-                 c(
-                   list("g" = g,
-                        "distr_list" = distr_list,
-                        "x" = unique(d$x),
-                        "discrete" = discrete,
-                        "discrete_grid" = discrete_grid,
-                        "continuous_grid" = continuous_grid,
-                        "log.x" = log.x,
-                        "log.p" = log.p,
-                        "breaks" = breaks,
-                        "hist_args" = hist_args,
-                        ...),
-                   distr_draw_args
-                 ))
-  }
-
-  if(!isTRUE(show_legend) && !is.numeric(show_legend)){
-    g <- g + ggplot2::theme(legend.position = "none")
-  } else if(is.numeric(show_legend)){
-    legend_breaks <- lapply(show_legend, function(i){
-      if(inherits(g$layers[[i]]$data,"waiver")){
-        as.character(g$data$group)
-      } else {
-        as.character(g$layers[[i]]$data$group)
-      }
-    }) %>%
-      do.call("c", .) %>%
-      unique()
-
-    g <- g + ggplot2::scale_color_discrete(breaks = legend_breaks)
-
-  }
+  g <- hist_make_internal(g = g,
+                          hist_df = d,
+                          log.p = log.p,
+                          log.x = log.x,
+                          scale = scale,
+                          show_legend = show_legend,
+                          discrete = discrete,
+                          distr_list = distr_list,
+                          discrete_grid = discrete_grid,
+                          continuous_grid = continuous_grid,
+                          breaks = breaks,
+                          hist_args = hist_args,
+                          distr_draw_args = distr_draw_args,
+                          ...)
 
   return(g)
 }
@@ -576,11 +512,88 @@ distr_draw <- function(g, distr_list, x,
       ggplot2::aes(color = group, x = x, y = p, group = distID),
       linewidth = draw_linewidth,
       linetype = draw_linetype,
-      alpha = draw_alpha,
-      ...
+      alpha = draw_alpha
     ) +
     ggplot2::theme(legend.position = "top")
   return(g)
 }
 
+
+hist_make_internal <- function(g,
+                               hist_df,
+                               log.p,
+                               log.x,
+                               scale,
+                               show_legend,
+                               discrete,
+                               distr_list,
+                               discrete_grid ,
+                               continuous_grid,
+                               breaks,
+                               hist_args,
+                               distr_draw_args,
+                               ...){
+
+  if(scale){
+    x_lab <- tex("$x / \\langle x \\rangle^\\phi$")
+    y_lab <- tex("$x^\\Delta P(x)$")
+  } else {
+    x_lab <- tex("$x$")
+    y_lab <- tex("$P(x)$")
+  }
+
+  if(log.x){
+    g <- g + ggplot2::scale_x_continuous(trans = "log10", labels = fancy_scientificb)
+  }
+
+  if(log.p){
+    g <- g + ggplot2::scale_y_continuous(trans = "log10", labels = fancy_scientificb)
+  }
+
+  g <- g +
+    ggplot2::theme_bw(base_size = 15) +
+    ggplot2::labs(x = x_lab, y = y_lab)
+
+  if(!is.null(distr_list)){
+    g <- do.call("distr_draw",
+                 c(
+                   list("g" = g,
+                        "distr_list" = distr_list,
+                        "x" = unique(hist_df$x),
+                        "discrete" = discrete,
+                        "discrete_grid" = discrete_grid,
+                        "continuous_grid" = continuous_grid,
+                        "log.x" = log.x,
+                        "log.p" = log.p,
+                        "breaks" = breaks,
+                        "hist_args" = hist_args,
+                        ...),
+                   distr_draw_args
+                 ))
+  }
+
+  if(!isTRUE(show_legend) && !is.numeric(show_legend)){
+    g <- g + ggplot2::theme(legend.position = "none")
+  } else if(is.numeric(show_legend)){
+
+    if(any(!is.between(show_legend, range(seq_along(g$layers)), inclusive = TRUE))){
+      show_legend <- show_legend[!is.between(show_legend, range(seq_along(g$layers)), inclusive = TRUE)]
+      cli::cli_abort("Cannot find the specified layer(s) for legends: {.val {show_legend}}. Only {length(g$layers)} layer{?s} found.")
+    }
+
+    legend_breaks <- lapply(show_legend, function(i){
+      if(inherits(g$layers[[i]]$data,"waiver")){
+        as.character(g$data$group)
+      } else {
+        as.character(g$layers[[i]]$data$group)
+      }
+    }) %>%
+      do.call("c", .) %>%
+      unique()
+
+    g <- g + ggplot2::scale_color_discrete(breaks = legend_breaks)
+
+  }
+  return(g)
+}
 
