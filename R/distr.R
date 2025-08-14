@@ -160,12 +160,22 @@ distr_boot <- function(distr){
 
 
 .prep_multi_fit_args <- function(dist, fix.arg){
-  if(!is.character(dist) && is.list(dist)){
+  if(length(dist) == 1 && is.character(dist) && isFALSE(any(sapply(fix.arg, function(x){any(is.character(x))})))){
+    start <- NULL
+
+    fix.arg.final <- list(fix.arg)
+    names(fix.arg.final) <- dist
+
+  } else if(!is.character(dist) && is.list(dist)){
     start <- dist
     dist <- names(dist)
     if(!is.null(fix.arg)){
       if(!is.list(fix.arg) || is.null(names(fix.arg))){
         cli::cli_abort("{.arg fix.arg} must be a named list with fixed argument as values and distribution as names.")
+      }
+      if(any(!names(fix.arg) %in% names(dist))){
+        msnames <- names(fix.arg)[!names(fix.arg) %in% names(dist)]
+        cli::cli_warn("Cannot find {msnames} in the list of distributions provided by {.arg dist}")
       }
       fix.arg.final <- vector(mode = "list", length = length(start))
       names(fix.arg.final) <- names(start)
@@ -194,8 +204,11 @@ distr_boot <- function(distr){
       }
 
     }
-  } else{
+  } else {
     start <- NULL
+    if(!is.null(fix.arg)){
+      cli::cli_warn("Ignored {.arg fix.arg} because there is no specified value to fix at.")
+    }
     fix.arg.final <- NULL
   }
   return(
@@ -260,7 +273,7 @@ distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.ar
     seq_along(l), function(i){
       cri <- do.call(criterion, list(l[[i]]))
       df <- attributes(l[[i]])$df
-      data.frame(model = dist[i], cri = cri, df = df)
+      data.frame(model = names(l)[i], cri = cri, df = df)
     }
   ) %>%
     do.call("rbind", .)
