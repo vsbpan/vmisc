@@ -44,6 +44,7 @@ distr_fit <- function(x, name, as_distr = TRUE, start = NULL, fix.arg = NULL, ..
 
   if(is.null(start)){
     start <- auto_start(x, name = name, start = start)
+    start <- start[!names(start) %in% names(fix.arg)]
   }
 
   res <- fitdistrplus::fitdist(as.vector(x, mode = "numeric"), name, start = start, fix.arg = fix.arg, ...)
