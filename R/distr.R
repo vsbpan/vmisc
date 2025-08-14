@@ -37,11 +37,16 @@ distr_fun <- function(x){
 }
 
 
-distr_fit <- function(x, name, as_distr = TRUE, ...){
+distr_fit <- function(x, name, as_distr = TRUE, start = NULL, fix.arg = NULL, ...){
   if(!is.numeric(x)){
     cli::cli_abort("{.arg x} must be a numeric vector.")
   }
-  res <- fitdistrplus::fitdist(as.vector(x, mode = "numeric"), name, ...)
+
+  if(is.null(start)){
+    start <- auto_start(x, name = name, start = start)
+  }
+
+  res <- fitdistrplus::fitdist(as.vector(x, mode = "numeric"), name, start = start, fix.arg = fix.arg, ...)
   if(as_distr){
     if(!is.null(res$fix.arg)){
       res$estimate <- c(res$estimate, res$fix.arg)
@@ -153,14 +158,7 @@ distr_boot <- function(distr){
 }
 
 
-# fixed.arg should be a named list of character vectors of which arguments to fix at the starting value
-distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.arg = NULL, ...){
-  if(!is.numeric(x)){
-    cli::cli_abort("{.arg x} of class {.cls {class(x)}} is not the expected {.cls numeric}.")
-  }
-  x <- x[!is.na(x)]
-  n <- length(x)
-
+.prep_multi_fit_args <- function(dist, fix.arg){
   if(!is.character(dist) && is.list(dist)){
     start <- dist
     dist <- names(dist)
@@ -197,19 +195,34 @@ distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.ar
     }
   } else{
     start <- NULL
+    fix.arg.final <- NULL
   }
+  return(
+    list(
+      "dist" = dist,
+      "start" = start,
+      "fix.arg" = fix.arg.final
+    )
+  )
+}
 
+distr_multi_fit <- function(x, dist, fix.arg = NULL, as_distr = FALSE, ...){
+  if(!is.numeric(x)){
+    cli::cli_abort("{.arg x} of class {.cls {class(x)}} is not the expected {.cls numeric}.")
+  }
+  x <- x[!is.na(x)]
 
+  args <- .prep_multi_fit_args(dist = dist, fix.arg = fix.arg)
 
-  l <- lapply(dist, function(d){
+  l <- lapply(args$dist, function(d){
 
     fit_args <- list("x" = x,
                      "name" = d,
-                     as_distr = FALSE,
+                     as_distr = as_distr,
                      ...)
 
     if(!is.null(start)){
-      fit_args <- c(fit_args, list("start" = start[[d]], "fix.arg" = fix.arg.final[[d]]))
+      fit_args <- c(fit_args, list("start" = args$start[[d]], "fix.arg" = args$fix.arg[[d]]))
     }
 
 
@@ -217,6 +230,23 @@ distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.ar
       "distr_fit",
       fit_args
     )
+    fit
+  })
+  names(l) <- args$dist
+  return(l)
+}
+
+# fixed.arg should be a named list of character vectors of which arguments to fix at the starting value
+distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.arg = NULL, ...){
+  if(!is.numeric(x)){
+    cli::cli_abort("{.arg x} of class {.cls {class(x)}} is not the expected {.cls numeric}.")
+  }
+  x <- x[!is.na(x)]
+  n <- length(x)
+
+  l <- distr_multi_fit(x, dist = dist, fix.arg = fix.arg, as_distr = FALSE, ...)
+
+  l <- lapply(l, function(fit){
     res <- logLik(fit)
     class(res) <- "logLik"
     attr(res, "nall") <- n
@@ -227,7 +257,7 @@ distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.ar
 
   out <- lapply(
     seq_along(l), function(i){
-      cri <- do.call(criterion, l[i])
+      cri <- do.call(criterion, list(l[[i]]))
       df <- attributes(l[[i]])$df
       data.frame(model = dist[i], cri = cri, df = df)
     }
@@ -241,3 +271,159 @@ distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.ar
 
   return(out)
 }
+
+
+distr_ks_test <- function(x, name, simulate = 1, simplify = TRUE,
+                          test.args = list(
+                            alternative = c("two.sided", "less", "greater"),
+                            exact = NULL, simulate.p.value = FALSE, B = 2000
+                          ), ...){
+  fit <- distr_fit(x = x, name = name, ...)
+  env <- sys.frame(sys.parent())
+
+  test.args <- vmisc::append_default_args(test.args)
+
+  if(!isFALSE(simulate)){
+    assert_atomic_type(simulate, "numeric", null_as_is = FALSE, NA_as_is = FALSE)
+    res <- lapply(seq_len(simulate), function(i){
+      res <- do.call("ks.test", c(
+        list(
+          "x" = x,
+          "y" = rdistr(length(x), fit, boot = FALSE)
+        ),
+        test.args
+      ), envir = env)
+      res$method <- paste0(res$method, sprintf(" (boot %s)", i))
+      res
+    })
+  } else {
+    res <- list(
+      do.call("ks.test", c(
+        list(
+          "x" = x,
+          "y" = paste0("p", name)
+        ),
+        fit$param,
+        test.args
+      ), envir = env)
+    )
+  }
+
+  dataname <- deparse(substitute(x))
+  res <- lapply(res, function(x){
+    x$data.name <- dataname
+    x
+  })
+
+  if(simplify){
+    out <- res[[1]]
+
+    stat <- do.call("c", lapply(res, function(x){x$statistic}))
+    p <- do.call("c", lapply(res, function(x){x$p.value}))
+    new_p <- fisher_method(p)
+
+    out$statistic <- mean(stat)
+    names(out$statistic) <- unique(names(stat))
+    stat <- unname(stat)
+    out$p.value <- new_p$P
+
+    out$fisher_method <- new_p
+    out$sim <- cbind(
+      "statistic" = stat,
+      "p" = p
+    )
+
+    out$method <- gsub("\\(boot 1\\)",sprintf("(combined %s boot)", length(res)), out$method)
+
+    res <- out
+  }
+
+  return(res)
+}
+
+
+distr_pp <- function(x, dist, fix.arg = NULL, fit_args = NULL, ...){
+  l <- do.call("distr_multi_fit", c(list(
+    x = x,
+    dist = dist,
+    fix.arg = fix.arg,
+    as_distr = FALSE
+  ), fit_args), envir = sys.frame(sys.parent()))
+
+  fitdistrplus::ppcomp(l, ...)
+}
+
+distr_qq <- function(x, dist, fix.arg = NULL, fit_args = NULL, ...){
+  l <- do.call("distr_multi_fit", c(list(
+    x = x,
+    dist = dist,
+    fix.arg = fix.arg,
+    as_distr = FALSE
+  ), fit_args), envir = sys.frame(sys.parent()))
+
+  fitdistrplus::qqcomp(l, ...)
+}
+
+distr_cdf <- function(x, dist, fix.arg = NULL, fit_args = NULL, ...){
+  l <- do.call("distr_multi_fit", c(list(
+    x = x,
+    dist = dist,
+    fix.arg = fix.arg,
+    as_distr = FALSE
+  ), fit_args), envir = sys.frame(sys.parent()))
+
+  fitdistrplus::cdfcomp(l, ...)
+}
+
+auto_start_env <- new.env()
+
+auto_start <- function(x, name, start){
+  if(!is.null(start)){
+    return(start)
+  }
+  start <- get0(name, envir = auto_start_env)
+
+  if(!is.null(start)){
+    if(!is.list(start)){
+      cli::cli_warn("Auto-start object of class {.cls {class(start)}} is not {.cls list} for distribution {.val {name}}.")
+      start <- NULL
+    }
+    if(!is.null(start) && is.null(names(start))){
+      cli::cli_warn("Missing argument name for distribution {.val {name}}.")
+      start <- NULL
+    }
+    if(!is.null(start)){
+      is_fun <- sapply(start, function(x){is.function(x)})
+      is_num <- sapply(start, function(x){is.numeric(x)})
+
+      if(!all(is_fun | is_num)){
+        invalid <- class(
+          sapply(start, class)[sapply(start, function(x){is.function(x) | is.numeric(x)})]
+        )
+        cli::cli_warn("Auto-start list elements must be a function or numeric, but the invalid class{?es} {.cls {invalid}} found for distribution {.val {name}}.")
+        start <- NULL
+      }
+    }
+
+    if(!is.null(start) && any(is_fun)){
+      for(i in which(is_fun)){
+        start[[i]] <- start[[i]](x)
+      }
+    }
+  }
+
+
+  if(is.null(start)){
+    start <- fitdistrplus:::startargdefault(x, name)
+  }
+  return(start)
+}
+
+auto_start_register <- function(name, ...){
+  l <- list(...)
+  assign(name, l, envir = auto_start_env)
+  cli::cli_alert_success("Successfully registered auto-start arguments for the {.val {name}} distribution: {.var  {names(l)}}")
+  invisible(NULL)
+}
+
+

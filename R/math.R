@@ -49,3 +49,21 @@ moment <- function(x, p){
   assert_atomic_type(p, "numeric")
   mean(x^p)
 }
+
+fisher_method <- function(p){
+  p <- log(p)
+  val <- sum(p) * -2
+  df <- length(p) * 2
+  P <- stats::pchisq(val, df = df, lower.tail = FALSE)
+  (data.frame(Chisq = val, df = df, P = P))
+}
+
+cauchy_method <- function(p){
+  is.small<-(p<1e-15)
+  p[!is.small] <- tan(0.5 - p[!is.small]) * pi
+  p[is.small] <- 1/p[is.small]/pi
+  val <- sum(p)
+  P <- stats::pcauchy(val,lower.tail = FALSE)
+  (data.frame(CCT = val, P = P))
+}
+

@@ -89,14 +89,6 @@ loghist.default <- function(x,
   g <- d %>%
     ggplot2::ggplot(ggplot2::aes(x = x, y = p))
 
-  if(log.x){
-    g <- g + ggplot2::scale_x_continuous(trans = "log10", labels = fancy_scientificb)
-  }
-
-  if(log.p){
-    g <- g + ggplot2::scale_y_continuous(trans = "log10", labels = fancy_scientificb)
-  }
-
   if(geom == "line"){
     g <- g + ggplot2::geom_line(linewidth = linewidth, ...)
   }
