@@ -37,9 +37,24 @@ distr_fun <- function(x){
 }
 
 
-distr_fit <- function(x, name, as_distr = TRUE, start = NULL, fix.arg = NULL, ...){
+distr_fit <- function(x, name, as_distr = TRUE, start = NULL, fix.arg = NULL, discrete, discrete_warn = FALSE, ...){
   if(!is.numeric(x)){
     cli::cli_abort("{.arg x} must be a numeric vector.")
+  }
+
+  if(isTRUE(discrete_warn) && missing(discrete)) {
+    if (is.element(name, c("binom", "nbinom", "geom", "hyper", "pois", "multinom")))
+      discrete <- TRUE
+    else {
+      if(!is.element(name, c("norm", "cauchy", "gamma", "lnorm", "t", "chisq", "logis",
+                             "laplace", "dirichlet", "f", "unif", "weibull", "wald", "invgaussian",
+                             "invgamma", "pareto", "exp", "beta", "frechet", "betapr", "nsbeta", "tiang",
+                             "gev", "gpd", "hnorm", "gumble", "gompertz", "kumar", "ht","rayleigh", "nsbeta",
+                             "lomax"))){
+        cli::cli_inform("Assumed {.val {name}} is continuous. Silence the message by setting {.arg discrete = TRUE} or {.arg discrete = FALSE}.")
+      }
+      discrete <- FALSE
+    }
   }
 
   if(is.null(start)){
@@ -47,7 +62,8 @@ distr_fit <- function(x, name, as_distr = TRUE, start = NULL, fix.arg = NULL, ..
     start <- start[!names(start) %in% names(fix.arg)]
   }
 
-  res <- fitdistrplus::fitdist(as.vector(x, mode = "numeric"), name, start = start, fix.arg = fix.arg, ...)
+  res <- fitdistrplus::fitdist(as.vector(x, mode = "numeric"), name, start = start, fix.arg = fix.arg,
+                               discrete = discrete, ...)
   if(as_distr){
     if(!is.null(res$fix.arg)){
       res$estimate <- c(res$estimate, res$fix.arg)
@@ -160,12 +176,26 @@ distr_boot <- function(distr){
 
 
 .prep_multi_fit_args <- function(dist, fix.arg){
-  if(!is.character(dist) && is.list(dist)){
+  if(!is.list(dist) && !is.character(dist)){
+    cli::cli_abort("{.arg dist} must be a list or character vector.")
+  }
+  if(length(dist) == 1 && is.character(dist) && isFALSE(any(sapply(fix.arg, function(x){any(is.character(x))})))){
+    start <- NULL
+
+    fix.arg.final <- list(fix.arg)
+    names(fix.arg.final) <- dist
+
+  } else if(!is.character(dist) && is.list(dist)){
     start <- dist
     dist <- names(dist)
     if(!is.null(fix.arg)){
       if(!is.list(fix.arg) || is.null(names(fix.arg))){
         cli::cli_abort("{.arg fix.arg} must be a named list with fixed argument as values and distribution as names.")
+      }
+      if(any(!names(fix.arg) %in% names(dist))){
+        msnames <- names(fix.arg)[!names(fix.arg) %in% names(dist)]
+        warning(cli::format_warning("Cannot find {msnames} in the list of distributions provided by {.arg dist}"),
+                .immediate = TRUE)
       }
       fix.arg.final <- vector(mode = "list", length = length(start))
       names(fix.arg.final) <- names(start)
@@ -193,9 +223,15 @@ distr_boot <- function(distr){
         }
       }
 
+    } else {
+      fix.arg.final <- NULL
     }
-  } else{
+  } else {
     start <- NULL
+    if(!is.null(fix.arg)){
+      warning(cli::format_warning("Ignored {.arg fix.arg} because there is no specified value to fix at."),
+              immediate. = TRUE)
+    }
     fix.arg.final <- NULL
   }
   return(
@@ -234,6 +270,8 @@ distr_multi_fit <- function(x, dist, fix.arg = NULL, as_distr = FALSE, ...){
     fit
   })
   names(l) <- args$dist
+
+
   return(l)
 }
 
@@ -260,7 +298,7 @@ distr_comp <- function(x, dist = c("gamma", "lnorm"), criterion = "AICc", fix.ar
     seq_along(l), function(i){
       cri <- do.call(criterion, list(l[[i]]))
       df <- attributes(l[[i]])$df
-      data.frame(model = dist[i], cri = cri, df = df)
+      data.frame(model = names(l)[i], cri = cri, df = df)
     }
   ) %>%
     do.call("rbind", .)
@@ -370,7 +408,8 @@ distr_cdf <- function(x, dist, fix.arg = NULL, fit_args = NULL, ...){
     x = x,
     dist = dist,
     fix.arg = fix.arg,
-    as_distr = FALSE
+    as_distr = FALSE,
+    discrete_warn = TRUE
   ), fit_args), envir = sys.frame(sys.parent()))
 
   fitdistrplus::cdfcomp(l, ...)
@@ -387,11 +426,12 @@ auto_start <- function(x, name, start){
 
   if(!is.null(start)){
     if(!is.list(start)){
-      cli::cli_warn("Auto-start object of class {.cls {class(start)}} is not {.cls list} for distribution {.val {name}}.")
+      warning(cli::format_warning("Auto-start object of class {.cls {class(start)}} is not {.cls list} for distribution {.val {name}}."),
+              immediate. = TRUE)
       start <- NULL
     }
     if(!is.null(start) && is.null(names(start))){
-      cli::cli_warn("Missing argument name for distribution {.val {name}}.")
+      warning(cli::format_warning("Missing argument name for distribution {.val {name}}."), immediate. = TRUE)
       start <- NULL
     }
     if(!is.null(start)){
@@ -402,7 +442,7 @@ auto_start <- function(x, name, start){
         invalid <- class(
           sapply(start, class)[sapply(start, function(x){is.function(x) | is.numeric(x)})]
         )
-        cli::cli_warn("Auto-start list elements must be a function or numeric, but the invalid class{?es} {.cls {invalid}} found for distribution {.val {name}}.")
+        warning(cli::format_warning("Auto-start list elements must be a function or numeric, but the invalid class{?es} {.cls {invalid}} found for distribution {.val {name}}."), immediate. = TRUE)
         start <- NULL
       }
     }

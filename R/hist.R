@@ -361,6 +361,11 @@ distr_draw <- function(g, distr_list, x,
     distr_list <- rep(distr_list, boot)
   }
 
+  distr_list_names <- names(distr_list)
+  if(is.null(distr_list_names)){
+    distr_list_names <- rep("", length(distr_list))
+  }
+
   n <- length(distr_list)
   den_data <- vector(mode = "list", length = n)
 
@@ -427,7 +432,11 @@ distr_draw <- function(g, distr_list, x,
 
 
     for (i in seq_len(n)){
-      dist_name <- distr_list[[i]]$name
+      if(distr_list_names[i] == ""){
+        dist_name <- distr_list[[i]]$name
+      } else {
+        dist_name <- distr_list_names[i]
+      }
 
       if(scale){
         mu <- distr_mu(distr_list[[i]])
@@ -467,7 +476,12 @@ distr_draw <- function(g, distr_list, x,
       rb <- exp(rb)
     }
     for (i in seq_len(n)){
-      dist_name <- distr_list[[i]]$name
+      if(distr_list_names[i] == ""){
+        dist_name <- distr_list[[i]]$name
+      } else {
+        dist_name <- distr_list_names[i]
+      }
+
       x <- rdistr(simulate, distr_list[[i]], boot = boot)
       if(length(breaks) != 1 && any(!is.between(range(x), rb))){
         breaks <- length(breaks) + 1

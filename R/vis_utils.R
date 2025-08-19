@@ -6,7 +6,7 @@
 #' @param labels a vector of what to label. ("eq", "R2", "P", "n")
 #' @param ... additional arguments
 #' @return a ggplot object
-geom_lineeq <- function(x, method = "MA", rr.digits = 3, coef.digits = 3, labels = c("eq", "R2"), ...){
+geom_lineeq <- function(x, method = "SMA", rr.digits = 3, coef.digits = 3, labels = c("eq", "R2"), ...){
   list(
     ggpmisc::stat_ma_line(method = method),
     ggpmisc::stat_ma_eq(eq.with.lhs = "italic(hat(y))~`=`~",
@@ -135,3 +135,28 @@ dev.isize <- function(expr, units = c("in", "cm", "px")){
   }
   invisible(NULL)
 }
+
+
+# scale_color_iwanthue <- function (name = ggplot2::waiver(), ...,
+#                                   presets = c('full', 'default', 'colorblind_friendly',
+#                                               'fancy_light', 'fancy_dark', 'shades', 'tarnish', 'pastel',
+#                                               'pimp', 'intense', 'fluo', 'red_roses', 'ochre_sand', 'yellow_lime',
+#                                               'green_mint', 'ice_cube', 'blue_ocean', 'indigo_night', 'purple_wine'),
+#                                   seed = NULL,
+#                                   force_init = FALSE,
+#                                   aesthetics = "colour"){
+#   presets <- match.arg(presets)
+#   presets <- rwantshue::hcl_presets[[presets]]
+#   scheme <- rwantshue::iwanthue(seed = seed, force_init = force_init)
+#   pal <- function(n){
+#     scheme$hex(n, color_space = presets)
+#   }
+#
+#   {
+#     ggplot2::discrete_scale(aesthetics, name = name,
+#                    palette = pal, ...)
+#   }
+# }
+
+
+

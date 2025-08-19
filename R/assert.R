@@ -119,9 +119,9 @@ assert_atomic_type <- function(x, type,
       x <- unique(x)
     }
   }
-
+  env <- sys.frame(sys.parent())
   test <- function(x){
-    do.call(paste0("is.",type), list(x))
+    do.call(paste0("is.",type), list(x), envir = env)
   }
 
   if(!test(x)){
