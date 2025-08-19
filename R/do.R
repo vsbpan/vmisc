@@ -17,6 +17,7 @@ pb_par_lapply <- function(x, FUN,
                           fake_pkg_root_path = getwd()){
 
   has_clust <- inherits(cores, "cluster")
+  nms <- names(x)
 
   if(!has_clust && (is.null(cores) || is.na(cores) || cores <= 1 || isFALSE(cores))){
     if(is.list(x)){
@@ -113,6 +114,10 @@ pb_par_lapply <- function(x, FUN,
     cli::cli_process_done()
     cli::cli_progress_done()
   })
+
+  if(!is.null(nms)){
+    names(out) <- nms
+  }
 
   return(out)
 }

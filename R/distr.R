@@ -382,7 +382,8 @@ auto_start <- function(x, name, start){
   if(!is.null(start)){
     return(start)
   }
-  start <- get0(name, envir = auto_start_env)
+  name2 <- paste0("distr_auto_start_", name)
+  start <- get0(name2, envir = auto_start_env)
 
   if(!is.null(start)){
     if(!is.list(start)){
@@ -422,7 +423,8 @@ auto_start <- function(x, name, start){
 
 auto_start_register <- function(name, ...){
   l <- list(...)
-  assign(name, l, envir = auto_start_env)
+  name2 <- paste0("distr_auto_start_", name)
+  assign(name2, l, envir = auto_start_env)
   cli::cli_alert_success("Successfully registered auto-start arguments for the {.val {name}} distribution: {.var  {names(l)}}")
   invisible(NULL)
 }
