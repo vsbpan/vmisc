@@ -13,12 +13,13 @@ wipe_functions <- function(){
 #' @description Lazy wrapper for reloading fake package if it is already loaded.
 #' @param dev if TRUE, enter development mode (via `pkgload::load_all()`). If FALSE, enter default mode (via `vmisc::load_all2()`). Development mode allows newly recompiled C++ code to be included in the package, but copies the .dll file for each time it is initiated, which can cause memory overflow, especially in multisession parallel computing.
 #' @param package name of fake package
+#' @param show_conflicts If TRUE and dev = FALSE, prints the conflict message.
 #' @return NULL
-reload <- function(dev = FALSE, package = fake_pkg()){
+reload <- function(dev = FALSE, package = fake_pkg(), show_conflicts = FALSE){
   if(dev){
     pkgload::load_all(package)
   } else {
-    vmisc::load_all2(package)
+    vmisc::load_all2(package, show_conflicts = FALSE)
   }
 }
 
@@ -52,8 +53,22 @@ package_version2 <- function(x){
   })
 }
 
-.tidyverse_attach <- utils::getFromNamespace("tidyverse_attach", "tidyverse")
-.confirm_conflict <- utils::getFromNamespace("confirm_conflict", "tidyverse")
+#.tidyverse_attach <- utils::getFromNamespace("tidyverse_attach", "tidyverse")
+
+# Stolen from tidyverse
+.confirm_conflict <- function (packages, name)
+{
+  objs <- packages %>% purrr::map(~get(name, pos = .)) %>%
+    purrr::keep(is.function)
+  if (length(objs) <= 1)
+    return()
+  objs <- objs[!duplicated(objs)]
+  packages <- packages[!duplicated(packages)]
+  if (length(objs) == 1)
+    return()
+  packages
+}
+
 
 .vmisc_dependencies <- function(include_self = TRUE){
   raw <- paste(utils::packageDescription("vmisc")$Imports,
@@ -67,7 +82,8 @@ package_version2 <- function(x){
   names
 }
 
-.vmisc_conflicts <- function(message = TRUE){
+# Stolen from tidyverse
+.pkg_conflicts <- function(message = TRUE){
   envs <- grep("^package:", search(), value = TRUE)
   envs <- purrr::set_names(envs)
   objs <- lapply(envs, function(env) {
@@ -88,20 +104,27 @@ package_version2 <- function(x){
   conflict_funs <- purrr::imap(conflicts, .confirm_conflict)
   x <- purrr::compact(conflict_funs)
 
-  if (length(x) == 0)
-    return("")
-  header <- cli::rule(left = crayon::bold("Conflicts"), right = ".vmisc_conflicts()")
-  pkgs <- x %>% purrr::map(~gsub("^package:", "", .))
-  others <- pkgs %>% purrr::map(`[`, -1)
-  other_calls <- purrr::map2_chr(others, names(others), ~paste0(crayon::blue(.x),
-                                                                "::", .y, "()", collapse = ", "))
-  winner <- pkgs %>% purrr::map_chr(1)
-  funs <- format(paste0(crayon::blue(winner), "::", crayon::green(paste0(names(x),
-                                                                         "()"))))
-  bullets <- paste0(crayon::red(cli::symbol$cross), " ", funs,
-                    " masks ", other_calls, collapse = "\n")
-  res <- paste0(header, "\n", bullets)
-  text_col(res)
+  if (length(x) == 0){
+    res <- ""
+  } else {
+    header <- cli::rule(left = cli::style_bold("Conflicts"), right = ".pkg_conflicts()")
+    pkgs <- x %>% purrr::map(~gsub("^package:", "", .))
+    others <- pkgs %>% purrr::map(`[`, -1)
+    other_calls <- purrr::map2_chr(others, names(others), ~paste0(cli::col_blue(.x),
+                                                                  "::", .y, "()", collapse = ", "))
+    winner <- pkgs %>% purrr::map_chr(1)
+    funs <- format(paste0(cli::col_blue(winner), "::", cli::col_green(paste0(names(x),
+                                                                             "()"))))
+    bullets <- paste0(cli::col_red(cli::symbol$cross), " ", funs,
+                      " masks ", other_calls, collapse = "\n")
+    res <- paste0(header, "\n", bullets)
+    res <- text_col(res)
+  }
+
+  if(message){
+    cli::cat_line(res)
+  }
+  invisible(res)
 }
 
 #' @title Detach vmisc
@@ -120,13 +143,18 @@ detach.vmisc <- function(x){
 }
 
 .reinstall.vmisc <- function(
-    source = c("github", "source"),
-    package_path = "C:/R_Projects/Package_Building/vmisc/vmisc_0.1.0.tar.gz", ...){
+    source = c("github", "source"), package_path = NULL, ...){
   load.vmisc <- "vmisc" %in% (.packages())
   detach.vmisc()
   if(match.arg(source) == "github"){
     devtools::install_github("vsbpan/vmisc", dependencies = TRUE, force = TRUE)
   } else {
+    if(is.null(package_path)){
+      cli::cli_abort("Package path is null.")
+    }
+    if(!file.exists(package_path)){
+      cli::cli_abort("Cannot find the file {.path {package_path}}")
+    }
     utils::install.packages(package_path, repos = NULL, type = "source")
   }
   rstudioapi::restartSession()
@@ -137,13 +165,28 @@ detach.vmisc <- function(x){
 
 .onAttach <- function(...){
   packageStartupMessage(
-    text_col(cli::rule(crayon::bold(paste0("Attached vmisc ", package_version2("vmisc")))))
+    text_col(cli::rule(cli::style_bold(paste0("Attached vmisc ", package_version2("vmisc")))))
   )
   packageStartupMessage("")
-  .tidyverse_attach()
+  #.tidyverse_attach()
   if (!"package:conflicted" %in% search()) {
-    packageStartupMessage(.vmisc_conflicts())
+    packageStartupMessage(.pkg_conflicts(message = FALSE))
   }
 }
 
+
+fake_pkg_onAttach <- function(path = fake_pkg(), show_conflicts = TRUE){
+  pkg <- basename(path)
+  if(!pkg %in% .packages()){
+    packageStartupMessage(
+      text_col(cli::rule(cli::style_bold(paste0("Attached ", pkg, " ", package_version2(pkg)))))
+    )
+    packageStartupMessage("")
+  }
+  if(show_conflicts){
+    if (!"package:conflicted" %in% search()) {
+      packageStartupMessage(.pkg_conflicts(message = FALSE))
+    }
+  }
+}
 

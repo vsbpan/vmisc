@@ -4,12 +4,14 @@
 \alias{reload}
 \title{Lazy wrapper for reloading fake package if it is already loaded}
 \usage{
-reload(dev = FALSE, package = fake_pkg())
+reload(dev = FALSE, package = fake_pkg(), show_conflicts = FALSE)
 }
 \arguments{
 \item{dev}{if TRUE, enter development mode (via `pkgload::load_all()`). If FALSE, enter default mode (via `vmisc::load_all2()`). Development mode allows newly recompiled C++ code to be included in the package, but copies the .dll file for each time it is initiated, which can cause memory overflow, especially in multisession parallel computing.}
 
 \item{package}{name of fake package}
+
+\item{show_conflicts}{If TRUE and dev = FALSE, prints the conflict message.}
 }
 \description{
 Lazy wrapper for reloading fake package if it is already loaded.

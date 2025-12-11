@@ -6,7 +6,7 @@
 \usage{
 geom_lineeq(
   x,
-  method = "MA",
+  method = "SMA",
   rr.digits = 3,
   coef.digits = 3,
   labels = c("eq", "R2"),

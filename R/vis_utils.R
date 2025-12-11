@@ -36,6 +36,7 @@ tex <- function(x, italic = FALSE, ...){
 #' @param terms the terms for which to compute the marginal effects. Has the same behavior as in `sjPlot::plot_model()`
 #' @param n specifies the density of points along `terms`
 #' @param ci the interval of upper and lower bounds
+#' @param ... additional arguments passed to `predict()`
 #' @return a data.frame
 marginal_effects <- function(model, terms, n = 300, ci = 0.95, ...){
 

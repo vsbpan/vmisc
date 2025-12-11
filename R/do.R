@@ -39,10 +39,9 @@ pb_par_lapply <- function(x, FUN,
   } else {
 
     if(!has_clust){
-      cli::cli_inform("Initializing {cores} parallel worker{?s}. . .")
-
       cl <- parallel::makeCluster(cores, outfile = "")
       doSNOW::registerDoSNOW(cl)
+      cli::cli_inform("Initialized {cores} parallel worker{?s}")
     }
 
     # Remove fake_pkg package from list. foreach::`%dopar%` calls library(package) as some point, which would give an error
@@ -85,9 +84,9 @@ pb_par_lapply <- function(x, FUN,
       ),
       .final = function(x){
         if(!has_clust){
-          cli::cli_inform("\nClosing parallel workers. . .")
           parallel::stopCluster(cl)
           has_clust <- TRUE
+          cli::cli_inform("\nClosed parallel workers")
         }
         invisible(x)
       },
@@ -103,8 +102,8 @@ pb_par_lapply <- function(x, FUN,
 
       if(!has_clust){
         message(e)
-        cli::cli_inform("\nClosing parallel workers. . .")
         parallel::stopCluster(cl)
+        cli::cli_inform("\nClosed parallel workers")
       }
     })
   }

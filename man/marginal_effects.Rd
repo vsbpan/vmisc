@@ -14,6 +14,8 @@ marginal_effects(model, terms, n = 300, ci = 0.95, ...)
 \item{n}{specifies the density of points along `terms`}
 
 \item{ci}{the interval of upper and lower bounds}
+
+\item{...}{additional arguments passed to `predict()`}
 }
 \value{
 a data.frame

@@ -19,6 +19,7 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
   .load_all_inernal(path = path, reset = reset, recompile = recompile,
                     export_all = export_all, helpers = helpers, quiet = quiet,
                     ...)
+  fake_pkg_onAttach(path)
 }
 
 .save_all <- function(){

@@ -23,9 +23,13 @@ loghist.default <- function(x,
                     hist_args = NULL,
                     show_legend = TRUE,
                     discrete = FALSE,
-                    discrete_grid = seq_interval(x, by = 1),
+                    discrete_grid = NULL,
                     continuous_grid = NULL,
                     ...){
+
+  if(discrete && is.null(discrete_grid)){
+    discrete_grid <- seq_interval(x, by = 1)
+  }
 
   distr_draw_args <- append_default_args(distr_draw_args)
 
@@ -143,9 +147,13 @@ loghist.list <- function(x,
                          hist_args = NULL,
                          show_legend = TRUE,
                          discrete = FALSE,
-                         discrete_grid = seq_interval(unlist(x, TRUE, FALSE), by = 1),
+                         discrete_grid = NULL,
                          continuous_grid = NULL,
                          ...){
+
+  if(discrete && is.null(discrete_grid)){
+    discrete_grid <- seq_interval(unlist(x, TRUE, FALSE), by = 1)
+  }
 
   distr_draw_args <- append_default_args(distr_draw_args)
 
@@ -274,7 +282,7 @@ calc_hist <- function(x, breaks,
     if(scale){
       mu <- mean(x)
       x <- x / mu^phi
-      p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
+      p <- graphics::hist(log(x), plot = FALSE, breaks = breaks, ...)
       if(isTRUE(discrete)){
         p$density <- p$counts / sum(p$counts) * exp(p$mids)^(delta-1)
       }
@@ -288,7 +296,7 @@ calc_hist <- function(x, breaks,
         "delta" = delta
       )
     } else {
-      p <- hist(log(x), plot = FALSE, breaks = breaks, ...)
+      p <- graphics::hist(log(x), plot = FALSE, breaks = breaks, ...)
       if(isTRUE(discrete)){
         p$density <- p$counts / sum(p$counts)  * exp(p$mids)
       }
@@ -302,7 +310,7 @@ calc_hist <- function(x, breaks,
     if(scale){
       mu <- mean(x)
       x <- x / mu^phi
-      p <- hist(x, plot = FALSE, breaks = breaks, ...)
+      p <- graphics::hist(x, plot = FALSE, breaks = breaks, ...)
       if(isTRUE(discrete)){
         p$density <- p$counts / sum(p$counts)
       }
@@ -316,7 +324,7 @@ calc_hist <- function(x, breaks,
         "delta" = delta
       )
     } else {
-      p <- hist(x, plot = FALSE, breaks = breaks, ...)
+      p <- graphics::hist(x, plot = FALSE, breaks = breaks, ...)
       if(isTRUE(discrete)){
         p$density <- p$counts / sum(p$counts)
       }
@@ -415,7 +423,7 @@ distr_draw <- function(g, distr_list, x,
         grid <- diff(x[is_cont2])
         if(log.x){
           throw <- 1:floor(length(grid) / 4)
-          f <- lm(
+          f <- stats::lm(
             y ~ (x),
             data = data.frame(
               "y" = log(grid)[-throw],

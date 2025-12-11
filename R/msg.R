@@ -4,17 +4,13 @@
 #' @param x a character string
 #' @return a character string
 text_col <- function(x){
-  if (!rstudioapi::isAvailable()) {
-    return(x)
-  }
-  if (!rstudioapi::hasFun("getThemeInfo")) {
-    return(x)
-  }
-  theme <- rstudioapi::getThemeInfo()
-  if (isTRUE(theme$dark))
-    crayon::white(x)
-  else crayon::black(x)
+  dark <- .detect_dark_theme("auto")
+  if (isTRUE(dark))
+    cli::col_white(x)
+  else cli::col_black(x)
 }
+
+.detect_dark_theme <- utils::getFromNamespace("detect_dark_theme", "cli")
 
 #' @title Warn if condition fails
 #' @description

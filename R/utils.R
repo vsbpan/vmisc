@@ -243,6 +243,7 @@ kill_other_R_sessions <- function() {
   return(invisible(NULL))
 }
 
+
 keep_len <- function(x, n){
   purrr::keep(x, function(z){
     length(z) > n

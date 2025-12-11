@@ -417,6 +417,10 @@ distr_cdf <- function(x, dist, fix.arg = NULL, fit_args = NULL, ...){
 
 auto_start_env <- new.env()
 
+
+.startargdefault <- utils::getFromNamespace("startargdefault", "fitdistrplus")
+
+
 auto_start <- function(x, name, start){
   if(!is.null(start)){
     return(start)
@@ -455,7 +459,7 @@ auto_start <- function(x, name, start){
 
 
   if(is.null(start)){
-    start <- fitdistrplus:::startargdefault(x, name)
+    start <- .startargdefault(x, name)
   }
   return(start)
 }

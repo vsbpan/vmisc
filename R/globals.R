@@ -1,1 +1,1 @@
-utils::globalVariables(c(".", "i", "val", "draw", "key", "a", "b", "p", "z", "species", "biplot", "y", "yend", "xend", "x" , "y", "centroids", "dist", "group", "k", "clear_cache", "unload", "distID"))
+utils::globalVariables(c(".", "i", "val", "draw", "key", "a", "b", "p", "z", "species", "biplot", "y", "yend", "xend", "x" , "y", "centroids", "dist", "group", "k", "clear_cache", "unload", "distID","dup","u","v","start"))
