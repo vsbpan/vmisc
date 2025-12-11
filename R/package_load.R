@@ -7,10 +7,11 @@
 #' @param helpers see `?pkgload::load_all()`
 #' @param quiet  see `?pkgload::load_all()`
 #' @param ... see `?pkgload::load_all()`
+#' @param show_conflicts If TRUE, print conflicts via `vmisc:::.pkg_conflicts()`
 #' @return NULL
 
 load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all = TRUE,
-                       helpers = TRUE, quiet = FALSE, ...) {
+                       helpers = TRUE, quiet = FALSE, show_conflicts = FALSE, ...) {
   if (inherits(path, "package")) {
     path <- path$path
   }
@@ -19,7 +20,7 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
   .load_all_inernal(path = path, reset = reset, recompile = recompile,
                     export_all = export_all, helpers = helpers, quiet = quiet,
                     ...)
-  fake_pkg_onAttach(path)
+  fake_pkg_onAttach(path, show_conflicts = show_conflicts)
 }
 
 .save_all <- function(){

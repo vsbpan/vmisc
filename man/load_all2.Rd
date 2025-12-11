@@ -11,6 +11,7 @@ load_all2(
   export_all = TRUE,
   helpers = TRUE,
   quiet = FALSE,
+  show_conflicts = FALSE,
   ...
 )
 }
@@ -26,6 +27,8 @@ load_all2(
 \item{helpers}{see `?pkgload::load_all()`}
 
 \item{quiet}{see `?pkgload::load_all()`}
+
+\item{show_conflicts}{If TRUE, print conflicts via `vmisc:::.pkg_conflicts()`}
 
 \item{...}{see `?pkgload::load_all()`}
 }
