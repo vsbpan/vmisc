@@ -147,7 +147,7 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
       .clear_cache()
       unload(package)
     }
-    defer(cleanup())
+    .defer(cleanup())
     local({
       .local_dir(path)
       .source_many(paths, encoding, env)
@@ -250,4 +250,4 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
 .local_dir <- utils::getFromNamespace("local_dir", "pkgload")
 .clear_cache <- utils::getFromNamespace("clear_cache", "pkgload")
 .changed_files <- utils::getFromNamespace("changed_files", "pkgload")
-
+.defer <- utils::getFromNamespace("defer", "pkgload")
