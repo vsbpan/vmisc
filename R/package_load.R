@@ -126,29 +126,34 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
 }
 
 .load_code2 <- function (path = ".", quiet = NULL) {
-  quiet <- .load_all_quiet(quiet, "load_code")
-  path <- pkgload::pkg_path(path)
-  package <- pkgload::pkg_name(path)
-  encoding <- pkgload::pkg_desc(path)$get("Encoding")
-  if (is.na(encoding)) {
-    encoding <- "ASCII"
-  }
-  env <- pkgload::ns_env(package)
-  r_files <- .find_code(path, quiet = quiet)
-  paths <- r_files
-  if (length(paths) == 0L)
-    return()
-  success <- FALSE
-  cleanup <- function() {
-    if (success)
+    quiet <- .load_all_quiet(quiet, "load_code")
+    path <- pkgload::pkg_path(path)
+    package <- pkgload::pkg_name(path)
+    encoding <- pkgload::pkg_desc(path)$get("Encoding")
+    if (is.na(encoding)) {
+      encoding <- "ASCII"
+    }
+    env <- pkgload::ns_env(package)
+    r_files <- .find_code(path, quiet = quiet)
+    paths <- .changed_files(r_files)
+    if (length(paths) == 0L) {
       return()
-    clear_cache()
-    unload(package)
-  }
-  on.exit(cleanup())
-  .withr_with_dir(path, .source_many(paths, encoding, env))
-  success <- TRUE
-  invisible(r_files)
+    }
+    success <- FALSE
+    cleanup <- function() {
+      if (success) {
+        return()
+      }
+      .clear_cache()
+      unload(package)
+    }
+    defer(cleanup())
+    local({
+      .local_dir(path)
+      .source_many(paths, encoding, env)
+    })
+    success <- TRUE
+    invisible(r_files)
 }
 
 .load_dll2 <- function(path = "."){
@@ -242,4 +247,7 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
 `%:::%` <- utils::getFromNamespace("%:::%", "pkgload")
 .find_code <- utils::getFromNamespace("find_code", "pkgload")
 .source_many <- utils::getFromNamespace("source_many", "pkgload")
-.withr_with_dir <- utils::getFromNamespace("withr_with_dir", "pkgload")
+.local_dir <- utils::getFromNamespace("local_dir", "pkgload")
+.clear_cache <- utils::getFromNamespace("clear_cache", "pkgload")
+.changed_files <- utils::getFromNamespace("changed_files", "pkgload")
+
