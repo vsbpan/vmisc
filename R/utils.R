@@ -225,10 +225,10 @@ kill_other_R_sessions <- function() {
     cli::cli_abort("System not supported.")
   }
 
-  current_sessions <- strsplit(Rsessions, "[[:space:]]") |>
-    lapply(function(x) ifelse(x == "", NA, x)) |>
-    lapply(stats::na.exclude) |>
-    lapply(as.vector) |>
+  current_sessions <- strsplit(Rsessions, "[[:space:]]") %>%
+    lapply(function(x) ifelse(x == "", NA, x)) %>%
+    lapply(stats::na.exclude) %>%
+    lapply(as.vector) %>%
     sapply(`[`, 2)
 
   kill_sessions <- current_sessions[current_sessions != current_PID]
