@@ -25,6 +25,7 @@ loghist.default <- function(x,
                     discrete = FALSE,
                     discrete_grid = NULL,
                     continuous_grid = NULL,
+                    drop_p_zero = log.p,
                     ...){
 
   if(discrete && is.null(discrete_grid)){
@@ -79,7 +80,8 @@ loghist.default <- function(x,
       "phi" = phi,
       "discrete" = discrete,
       "discrete_grid" = discrete_grid,
-      "continuous_grid" = continuous_grid
+      "continuous_grid" = continuous_grid,
+      "drop_p_zero" = drop_p_zero
     ),
     hist_args
   ))
@@ -149,6 +151,7 @@ loghist.list <- function(x,
                          discrete = FALSE,
                          discrete_grid = NULL,
                          continuous_grid = NULL,
+                         drop_p_zero = log.p,
                          ...){
 
   if(discrete && is.null(discrete_grid)){
@@ -212,7 +215,8 @@ loghist.list <- function(x,
         "phi" = phi,
         "discrete" = discrete,
         "discrete_grid" = discrete_grid,
-        "continuous_grid" = continuous_grid
+        "continuous_grid" = continuous_grid,
+        "drop_p_zero" = drop_p_zero
       ),
       hist_args
     ))
@@ -277,6 +281,7 @@ calc_hist <- function(x, breaks,
                       discrete,
                       discrete_grid,
                       continuous_grid,
+                      drop_p_zero = log.p,
                       ...){
   x <- x[!is.na(x)]
 
@@ -343,7 +348,7 @@ calc_hist <- function(x, breaks,
     }
   }
 
-  if(log.p){
+  if(drop_p_zero){
     d <- d[d$p > 0,]
   }
   attr(d, "breaks") <- p$breaks
@@ -365,6 +370,7 @@ distr_draw <- function(g, distr_list, x,
                        breaks = NULL,
                        simulate = FALSE,
                        hist_args = NULL,
+                       drop_p_zero = log.p,
                        ...){
   if(is.distr(distr_list)){
     distr_list <- list(distr_list)
@@ -548,7 +554,8 @@ distr_draw <- function(g, distr_list, x,
           "phi" = phi,
           "discrete" = discrete,
           "discrete_grid" = discrete_grid,
-          "continuous_grid" = continuous_grid
+          "continuous_grid" = continuous_grid,
+          "drop_p_zero" = drop_p_zero
         ),
         hist_args
       ))
