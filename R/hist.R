@@ -115,7 +115,7 @@ loghist.default <- function(x,
                           distr_list = distr_list,
                           discrete_grid = discrete_grid,
                           continuous_grid = continuous_grid,
-                          breaks = breaks,
+                          breaks = attr(d, "breaks"),
                           hist_args = hist_args,
                           distr_draw_args = distr_draw_args,
                           ...)
@@ -199,9 +199,9 @@ loghist.list <- function(x,
   if(is.null(nms)){
     nms <- seq_along(x)
   }
-
+  breaks2 <- breaks
   d <- lapply(seq_along(x), function(i){
-    do.call("calc_hist", c(
+    res <- do.call("calc_hist", c(
       list(
         "x" = x[[i]],
         "breaks" = breaks,
@@ -215,8 +215,11 @@ loghist.list <- function(x,
         "continuous_grid" = continuous_grid
       ),
       hist_args
-    )) %>%
-      cbind("group" = as.factor(nms[i]))
+    ))
+    if(i == 1){
+      breaks2 <<- attr(res, "breaks")
+    }
+    cbind(res, "group" = as.character(i), "names" = nms[i])
   }) %>%
     do.call("rbind", .)
 
@@ -231,19 +234,19 @@ loghist.list <- function(x,
     ggplot2::ggplot(ggplot2::aes(x = x, y = p))
 
   if(geom == "line"){
-    g <- g + ggplot2::geom_line(ggplot2::aes(color = group, group = group),
+    g <- g + ggplot2::geom_line(ggplot2::aes(color = names, group = group),
                                 linewidth = linewidth,
                                 ...)
   }
 
   if(geom == "col"){
-    g <- g + ggplot2::geom_col(ggplot2::aes(group = group, fill = group),
+    g <- g + ggplot2::geom_col(ggplot2::aes(group = group, fill = names),
                                position = "dodge",
                                ...)
   }
 
   if(geom == "point"){
-    g <- g + ggplot2::geom_point(ggplot2::aes(color = group, group = group),
+    g <- g + ggplot2::geom_point(ggplot2::aes(color = names, group = group),
                                  ...)
   }
 
@@ -257,7 +260,7 @@ loghist.list <- function(x,
                           distr_list = distr_list,
                           discrete_grid = discrete_grid,
                           continuous_grid = continuous_grid,
-                          breaks = breaks,
+                          breaks = breaks2,
                           hist_args = hist_args,
                           distr_draw_args = distr_draw_args,
                           ...)
@@ -278,6 +281,9 @@ calc_hist <- function(x, breaks,
   x <- x[!is.na(x)]
 
   if(log.x){
+    if(any(x == 0)){
+      cli::cli_warn("Dropped {sum(stats::na.omit(x) == 0)} zero value{?s} when log transforming.")
+    }
     x <- omit_zero(x)
     if(scale){
       mu <- mean(x)
@@ -483,9 +489,6 @@ distr_draw <- function(g, distr_list, x,
     }
   } else {
     rb <- range(breaks)
-    if(log.x){
-      rb <- exp(rb)
-    }
     for (i in seq_len(n)){
       if(distr_list_names[i] == ""){
         dist_name <- distr_list[[i]]$name
@@ -494,6 +497,13 @@ distr_draw <- function(g, distr_list, x,
       }
 
       x <- rdistr(simulate, distr_list[[i]], boot = boot)
+      if(log.x){
+        if(any(x == 0)){
+          cli::cli_warn("Dropped {sum(stats::na.omit(x) == 0)} zero value{?s} when log transforming.")
+        }
+        x <- omit_zero(x)
+        x <- log(x)
+      }
       if(length(breaks) != 1 && any(!is.between(range(x), rb, inclusive = TRUE))){
         step <- mean(diff(breaks))
         if(is.between(min(x), rb, inclusive = TRUE)){
@@ -522,6 +532,9 @@ distr_draw <- function(g, distr_list, x,
 
         #breaks <- length(breaks) + 1
         # cli::cli_warn("Some simulated values are outside of the range of histogram breaks. Defaulting simulated histogram breaks as {.arg nclass = {breaks}}")
+      }
+      if(log.x){
+        x <- exp(x)
       }
 
       den_data[[i]] <- do.call("calc_hist", c(
@@ -607,7 +620,7 @@ hist_make_internal <- function(g,
                         "continuous_grid" = continuous_grid,
                         "log.x" = log.x,
                         "log.p" = log.p,
-                        "breaks" = attr(hist_df, "breaks"),
+                        "breaks" = breaks,
                         "hist_args" = hist_args,
                         ...),
                    distr_draw_args
