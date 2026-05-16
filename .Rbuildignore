@@ -1,3 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 /misc
+^\.positai$
+^\.claude$

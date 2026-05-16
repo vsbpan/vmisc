@@ -313,6 +313,7 @@ calc_hist <- function(x, breaks,
       p <- graphics::hist(x, plot = FALSE, breaks = breaks, ...)
       if(isTRUE(discrete)){
         p$density <- p$counts / sum(p$counts)
+        p$mids <- p$mids + mean(diff(p$mids)) / 2
       }
       d <- data.frame(
         "x" = p$mids,
@@ -327,6 +328,7 @@ calc_hist <- function(x, breaks,
       p <- graphics::hist(x, plot = FALSE, breaks = breaks, ...)
       if(isTRUE(discrete)){
         p$density <- p$counts / sum(p$counts)
+        p$mids <- p$mids + mean(diff(p$mids)) / 2
       }
       d <- data.frame(
         "x" = p$mids,
@@ -338,6 +340,7 @@ calc_hist <- function(x, breaks,
   if(log.p){
     d <- d[d$p > 0,]
   }
+  attr(d, "breaks") <- p$breaks
   return(d)
 }
 
@@ -491,9 +494,34 @@ distr_draw <- function(g, distr_list, x,
       }
 
       x <- rdistr(simulate, distr_list[[i]], boot = boot)
-      if(length(breaks) != 1 && any(!is.between(range(x), rb))){
-        breaks <- length(breaks) + 1
-        cli::cli_warn("Some simulated values are outside of the range of histogram breaks. Defaulting simulated histogram breaks as {.arg nclass = {breaks}}")
+      if(length(breaks) != 1 && any(!is.between(range(x), rb, inclusive = TRUE))){
+        step <- mean(diff(breaks))
+        if(is.between(min(x), rb, inclusive = TRUE)){
+          lbreaks <- breaks
+        } else {
+          lbreaks <- seq(min(
+            min(x) - step,
+            breaks[1]
+          ), max(
+            min(x) - step,
+            breaks[1]
+          ), by = step)
+        }
+        if(is.between(max(x), rb, inclusive = TRUE)){
+          ubreaks <- breaks
+        } else {
+          ubreaks <- seq(min(breaks[1], max(x) + step),max(
+            max(x) + step,
+            breaks[length(breaks)]
+          ), by = step)
+        }
+
+
+        breaks <- unique(c(lbreaks, ubreaks))
+        rb <- range(breaks)
+
+        #breaks <- length(breaks) + 1
+        # cli::cli_warn("Some simulated values are outside of the range of histogram breaks. Defaulting simulated histogram breaks as {.arg nclass = {breaks}}")
       }
 
       den_data[[i]] <- do.call("calc_hist", c(
@@ -579,7 +607,7 @@ hist_make_internal <- function(g,
                         "continuous_grid" = continuous_grid,
                         "log.x" = log.x,
                         "log.p" = log.p,
-                        "breaks" = breaks,
+                        "breaks" = attr(hist_df, "breaks"),
                         "hist_args" = hist_args,
                         ...),
                    distr_draw_args

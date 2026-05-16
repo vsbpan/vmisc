@@ -11,5 +11,10 @@ Vincent's misc functions to be used across projects.
 \author{
 \strong{Maintainer}: Vincent Pan \email{vsbpan@gmail.com} (\href{https://orcid.org/0000-0001-9892-7805}{ORCID})
 
+Authors:
+\itemize{
+  \item Vincent Pan \email{vsbpan@gmail.com} (\href{https://orcid.org/0000-0001-9892-7805}{ORCID})
+}
+
 }
 \keyword{internal}
