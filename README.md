@@ -7,6 +7,6 @@ Handy functions to be used across projects. Most functions are undocumented and 
 ## Installation
 
 ``` R
-# install.packages("devtools") # Install if missing.
-devtools::install_github("vsbpan/vmisc", dependencies = TRUE, force = TRUE)
+# install.packages("pak") # Install if missing.
+pak::pak("vsbpan/vmisc", dependencies = TRUE, force = TRUE)
 ```
