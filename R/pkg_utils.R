@@ -147,7 +147,7 @@ detach.vmisc <- function(x){
   load.vmisc <- "vmisc" %in% (.packages())
   detach.vmisc()
   if(match.arg(source) == "github"){
-    devtools::install_github("vsbpan/vmisc", dependencies = TRUE, force = TRUE)
+    pak::pak("vsbpan/vmisc", dependencies = TRUE, force = TRUE)
   } else {
     if(is.null(package_path)){
       cli::cli_abort("Package path is null.")
