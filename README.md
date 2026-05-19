@@ -8,5 +8,5 @@ Handy functions to be used across projects. Most functions are undocumented and 
 
 ``` R
 # install.packages("pak") # Install if missing.
-pak::pak("vsbpan/vmisc", dependencies = TRUE, force = TRUE)
+pak::pak("vsbpan/vmisc", dependencies = TRUE)
 ```
