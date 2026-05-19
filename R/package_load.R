@@ -145,7 +145,7 @@ load_all2 <- function (path = ".", reset = TRUE, recompile = FALSE, export_all =
         return()
       }
       .clear_cache()
-      unload(package)
+      pkgload::unload(package)
     }
     .defer(cleanup())
     local({
