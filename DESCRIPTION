@@ -1,7 +1,7 @@
 Package: vmisc
 Type: Package
 Title: Vincent's misc functions 
-Version: 0.2.2
+Version: 0.2.3
 Date: 2026-05-16
 Authors@R: 
     person("Vincent", "Pan", email = "vsbpan@gmail.com",
@@ -63,4 +63,4 @@ Suggests:
     ggquiver,
     pak
 Encoding: UTF-8
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0

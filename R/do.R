@@ -40,7 +40,7 @@ pb_par_lapply <- function(x, FUN,
   } else {
 
     if(!has_clust){
-      cl <- parallel::makeCluster(cores, outfile = "")
+      cl <- parallel::makeCluster(cores, outfile = nullfile())
       doSNOW::registerDoSNOW(cl)
       cli::cli_inform("Initialized {cores} parallel worker{?s}")
     }
